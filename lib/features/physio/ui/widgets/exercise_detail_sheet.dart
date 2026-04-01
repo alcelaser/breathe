@@ -22,19 +22,17 @@ class ExerciseDetailSheet extends StatelessWidget {
             Text(exercise.name,
                 style: Theme.of(context).textTheme.headlineSmall),
             const SizedBox(height: 16),
-            if (exercise.id == 'hip_psoas_stretch' || exercise.id == 'lower_back_cobra_stretch') ...[
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 32),
-                  child: Image.asset(
-                    'assets/poses/${exercise.id}.png',
-                    height: 180,
-                    errorBuilder: (context, error, stackTrace) => const SizedBox(),
-                  ),
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 32),
+                child: Image.asset(
+                  'assets/poses/${exercise.id}.png',
+                  height: 180,
+                  errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) => const SizedBox(),
                 ),
               ),
-              const SizedBox(height: 16),
-            ],
+            ),
+            const SizedBox(height: 16),
             Wrap(
               spacing: 8,
               children: exercise.bodyAreas
