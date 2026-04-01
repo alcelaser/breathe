@@ -83,7 +83,7 @@ class MealRepository {
   Future<void> updateMeal(Meal meal) async {
     try {
       if (meal.id == null) {
-        throw DataAccessException('Cannot update meal without ID');
+        throw const DataAccessException('Cannot update meal without ID');
       }
       final Database database = await _database();
       await database.update(
