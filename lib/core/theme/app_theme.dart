@@ -94,6 +94,10 @@ class AppTheme {
         thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6.0, elevation: 0),
         overlayShape: const RoundSliderOverlayShape(overlayRadius: 16.0),
       ),
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: Color(0xFFFCFCFC),
+        surfaceTintColor: Colors.transparent,
+      ),
     );
   }
 }
