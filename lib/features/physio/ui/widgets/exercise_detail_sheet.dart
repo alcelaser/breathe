@@ -19,8 +19,24 @@ class ExerciseDetailSheet extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            Text(exercise.name,
-                style: Theme.of(context).textTheme.headlineSmall),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Text(
+                    exercise.name,
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.of(context).pop(),
+                  tooltip: 'Close details',
+                  color: const Color(0xFF616161),
+                ),
+              ],
+            ),
             const SizedBox(height: 16),
             Center(
               child: Padding(
