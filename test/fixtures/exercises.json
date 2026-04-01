@@ -1,0 +1,56 @@
+[
+  {
+    "id": "step_up_knee",
+    "name": "Step Up",
+    "bodyAreas": ["knee"],
+    "goals": ["strength"],
+    "description": "Step onto a low platform and return slowly.",
+    "sets": 3,
+    "reps": 10,
+    "durationSeconds": null,
+    "restSeconds": 45,
+    "notes": null,
+    "pedro": {
+      "evidenceLevel": "RCT",
+      "pedroScore": 6,
+      "reference": "Author et al., 2019, Journal",
+      "doi": "10.1000/example1"
+    }
+  },
+  {
+    "id": "heel_raise_ankle",
+    "name": "Heel Raise",
+    "bodyAreas": ["ankle"],
+    "goals": ["strength", "stability"],
+    "description": "Raise heels while standing and lower with control.",
+    "sets": 3,
+    "reps": 12,
+    "durationSeconds": null,
+    "restSeconds": 30,
+    "notes": null,
+    "pedro": {
+      "evidenceLevel": "Systematic Review",
+      "pedroScore": null,
+      "reference": "Author et al., 2020, Journal",
+      "doi": null
+    }
+  },
+  {
+    "id": "wall_slide_shoulder",
+    "name": "Wall Slide",
+    "bodyAreas": ["shoulder", "upper_back"],
+    "goals": ["mobility"],
+    "description": "Slide forearms up a wall while maintaining posture.",
+    "sets": 2,
+    "reps": 10,
+    "durationSeconds": null,
+    "restSeconds": 30,
+    "notes": "Avoid painful ranges.",
+    "pedro": {
+      "evidenceLevel": "Clinical Guideline",
+      "pedroScore": null,
+      "reference": "Author et al., 2021, Guideline",
+      "doi": null
+    }
+  }
+]
