@@ -79,4 +79,21 @@ class MealRepository {
       throw DataAccessException('Failed to delete meal: $error');
     }
   }
+
+  Future<void> updateMeal(Meal meal) async {
+    try {
+      if (meal.id == null) {
+        throw DataAccessException('Cannot update meal without ID');
+      }
+      final Database database = await _database();
+      await database.update(
+        Tables.meals,
+        meal.toMap()..remove('id'),
+        where: 'id = ?',
+        whereArgs: <Object?>[meal.id],
+      );
+    } on DatabaseException catch (error) {
+      throw DataAccessException('Failed to update meal: $error');
+    }
+  }
 }

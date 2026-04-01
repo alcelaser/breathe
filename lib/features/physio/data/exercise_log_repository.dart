@@ -145,6 +145,9 @@ class ExerciseLogRepository {
       );
 
       if (existing.isEmpty) {
+        if (reps <= 0) {
+          return;
+        }
         await database.insert(
           Tables.exercisePlanProgress,
           <String, Object?>{
@@ -158,14 +161,23 @@ class ExerciseLogRepository {
 
       final Map<String, Object?> row = existing.first;
       final int current = row['reps_done'] as int;
+      final int next = current + reps;
+      if (next <= 0) {
+        await database.delete(
+          Tables.exercisePlanProgress,
+          where: 'exercise_id = ? AND date = ?',
+          whereArgs: <Object>[exerciseId, isoDate],
+        );
+        return;
+      }
       await database.update(
         Tables.exercisePlanProgress,
-        <String, Object?>{'reps_done': current + reps},
+        <String, Object?>{'reps_done': next},
         where: 'exercise_id = ? AND date = ?',
         whereArgs: <Object>[exerciseId, isoDate],
       );
     } on DatabaseException catch (error) {
-      throw DataAccessException('Failed to increment planned reps: $error');
+      throw DataAccessException('Failed to update planned reps: $error');
     }
   }
 

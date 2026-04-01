@@ -24,6 +24,7 @@ CREATE TABLE meals (
   date         TEXT    NOT NULL,
   time_of_day  TEXT    NOT NULL CHECK(time_of_day IN ('breakfast','lunch','dinner','snack')),
   description  TEXT    NOT NULL,
+  quantity     TEXT    NOT NULL DEFAULT '',
   notes        TEXT
 )
 ''';

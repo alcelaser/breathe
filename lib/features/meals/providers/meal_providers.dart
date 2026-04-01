@@ -58,4 +58,11 @@ class MealNotifier extends AsyncNotifier<List<Meal>> {
       current.where((Meal meal) => meal.id != id).toList(),
     );
   }
+
+  Future<void> editMeal(Meal meal) async {
+    await _repository.updateMeal(meal);
+    final List<Meal> refreshed =
+        await _repository.getMealsForDate(_currentDate);
+    state = AsyncData<List<Meal>>(refreshed);
+  }
 }

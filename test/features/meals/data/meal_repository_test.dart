@@ -25,6 +25,7 @@ void main() {
         date: date,
         timeOfDay: MealTimeOfDay.breakfast,
         description: 'Oats',
+        quantity: '1 cup',
         notes: null,
       ),
     );
@@ -40,6 +41,7 @@ void main() {
         date: DateTime(2026, 4, 1),
         timeOfDay: MealTimeOfDay.lunch,
         description: 'Rice',
+        quantity: '2 cups',
         notes: null,
       ),
     );
@@ -48,6 +50,7 @@ void main() {
         date: DateTime(2026, 4, 2),
         timeOfDay: MealTimeOfDay.dinner,
         description: 'Fish',
+        quantity: '150g',
         notes: 'Light',
       ),
     );
@@ -66,6 +69,7 @@ void main() {
         date: DateTime(2026, 4, 1),
         timeOfDay: MealTimeOfDay.snack,
         description: 'Fruit',
+        quantity: '1 handful',
         notes: null,
       ),
     );

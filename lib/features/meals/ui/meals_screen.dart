@@ -10,15 +10,21 @@ class MealsScreen extends ConsumerWidget {
   const MealsScreen({super.key});
 
   Future<void> _openAddSheet(
-      BuildContext context, WidgetRef ref, DateTime date) async {
+      BuildContext context, WidgetRef ref, DateTime date, {Meal? meal}) async {
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       builder: (BuildContext context) {
         return AddMealSheet(
           initialDate: date,
-          onSave: (Meal meal) =>
-              ref.read(mealNotifierProvider.notifier).addMeal(meal),
+          initialMeal: meal,
+          onSave: (Meal newMeal) {
+            if (meal == null) {
+              return ref.read(mealNotifierProvider.notifier).addMeal(newMeal);
+            } else {
+              return ref.read(mealNotifierProvider.notifier).editMeal(newMeal);
+            }
+          },
         );
       },
     );
@@ -35,31 +41,39 @@ class MealsScreen extends ConsumerWidget {
           children: <Widget>[
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 48, 16, 24),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  IconButton(
-                    onPressed: () {
-                      ref.read(mealNotifierProvider.notifier).loadForDate(
-                            selectedDate.subtract(const Duration(days: 1)),
-                          );
-                    },
-                    icon: const Icon(Icons.chevron_left),
-                  ),
-                  Text(
-                    'MEALS - ${DateFormat.MMMEd().format(selectedDate).toUpperCase()}',
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          letterSpacing: 2.0,
-                          fontWeight: FontWeight.w400,
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      IconButton(
+                        onPressed: () {
+                          ref.read(mealNotifierProvider.notifier).loadForDate(
+                                selectedDate.subtract(const Duration(days: 1)),
+                              );
+                        },
+                        icon: const Icon(Icons.chevron_left),
+                      ),
+                      Expanded(
+                        child: Center(
+                          child: Text(
+                            'MEALS - ${DateFormat.MMMEd().format(selectedDate).toUpperCase()}',
+                            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                                  letterSpacing: 2.0,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                          ),
                         ),
-                  ),
-                  IconButton(
-                    onPressed: () {
-                      ref.read(mealNotifierProvider.notifier).loadForDate(
-                            selectedDate.add(const Duration(days: 1)),
-                          );
-                    },
-                    icon: const Icon(Icons.chevron_right),
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          ref.read(mealNotifierProvider.notifier).loadForDate(
+                                selectedDate.add(const Duration(days: 1)),
+                              );
+                        },
+                        icon: const Icon(Icons.chevron_right),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -76,7 +90,8 @@ class MealsScreen extends ConsumerWidget {
                     children: meals.map((Meal meal) {
                       return MealCard(
                         meal: meal,
-                        onDismissed: () async {
+                        onEdit: () => _openAddSheet(context, ref, selectedDate, meal: meal),
+                        onRemove: () async {
                           final int? id = meal.id;
                           if (id == null) {
                             return;

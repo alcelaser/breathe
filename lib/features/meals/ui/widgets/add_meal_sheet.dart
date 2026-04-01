@@ -5,16 +5,19 @@ class AddMealSheet extends StatelessWidget {
   const AddMealSheet({
     super.key,
     required this.initialDate,
+    this.initialMeal,
     required this.onSave,
   });
 
   final DateTime initialDate;
+  final Meal? initialMeal;
   final Future<void> Function(Meal meal) onSave;
 
   @override
   Widget build(BuildContext context) {
     return _AddMealSheetForm(
       initialDate: initialDate,
+      initialMeal: initialMeal,
       onSave: onSave,
     );
   }
@@ -23,10 +26,12 @@ class AddMealSheet extends StatelessWidget {
 class _AddMealSheetForm extends StatefulWidget {
   const _AddMealSheetForm({
     required this.initialDate,
+    this.initialMeal,
     required this.onSave,
   });
 
   final DateTime initialDate;
+  final Meal? initialMeal;
   final Future<void> Function(Meal meal) onSave;
 
   @override
@@ -36,12 +41,27 @@ class _AddMealSheetForm extends StatefulWidget {
 class _AddMealSheetFormState extends State<_AddMealSheetForm> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _quantityController = TextEditingController();
   final TextEditingController _notesController = TextEditingController();
-  MealTimeOfDay _selected = MealTimeOfDay.breakfast;
+  late MealTimeOfDay _selected;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialMeal != null) {
+      _selected = widget.initialMeal!.timeOfDay;
+      _descriptionController.text = widget.initialMeal!.description;
+      _quantityController.text = widget.initialMeal!.quantity;
+      _notesController.text = widget.initialMeal!.notes ?? '';
+    } else {
+      _selected = MealTimeOfDay.breakfast;
+    }
+  }
 
   @override
   void dispose() {
     _descriptionController.dispose();
+    _quantityController.dispose();
     _notesController.dispose();
     super.dispose();
   }
@@ -51,9 +71,11 @@ class _AddMealSheetFormState extends State<_AddMealSheetForm> {
       return;
     }
     final Meal meal = Meal(
+      id: widget.initialMeal?.id,
       date: widget.initialDate,
       timeOfDay: _selected,
       description: _descriptionController.text.trim(),
+      quantity: _quantityController.text.trim(),
       notes: _notesController.text.trim().isEmpty
           ? null
           : _notesController.text.trim(),
@@ -79,8 +101,10 @@ class _AddMealSheetFormState extends State<_AddMealSheetForm> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            const Text('Add Meal',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+            Text(
+              widget.initialMeal == null ? 'Add Meal' : 'Edit Meal',
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+            ),
             const SizedBox(height: 12),
             Wrap(
               spacing: 8,
@@ -106,6 +130,17 @@ class _AddMealSheetFormState extends State<_AddMealSheetForm> {
               },
             ),
             TextFormField(
+              controller: _quantityController,
+              decoration: const InputDecoration(labelText: 'Quantity (e.g., 1 cup, 100g)'),
+              validator: (String? value) {
+                final String text = value?.trim() ?? '';
+                if (text.isEmpty) {
+                  return 'Quantity is required';
+                }
+                return null;
+              },
+            ),
+            TextFormField(
               controller: _notesController,
               decoration: const InputDecoration(labelText: 'Notes (optional)'),
             ),
@@ -114,7 +149,7 @@ class _AddMealSheetFormState extends State<_AddMealSheetForm> {
               alignment: Alignment.centerRight,
               child: FilledButton(
                 onPressed: _save,
-                child: const Text('Save'),
+                child: Text(widget.initialMeal == null ? 'Add' : 'Update'),
               ),
             ),
           ],

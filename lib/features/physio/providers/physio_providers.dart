@@ -234,7 +234,7 @@ class PhysioNotifier extends AsyncNotifier<PhysioState> {
     required int reps,
   }) async {
     final PhysioState? current = state.valueOrNull;
-    if (current == null || reps <= 0) {
+    if (current == null || reps == 0) {
       return;
     }
 

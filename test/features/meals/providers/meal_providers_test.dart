@@ -43,6 +43,7 @@ void main() {
       date: date,
       timeOfDay: MealTimeOfDay.breakfast,
       description: 'Oats',
+      quantity: '1 cup',
       notes: null,
     );
 
