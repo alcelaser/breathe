@@ -19,18 +19,18 @@ class _BreathingScreenState extends ConsumerState<BreathingScreen> {
   int _exhale = 4;
   int _cycles = 5;
 
-    static const Map<String, String> _patternGoals = <String, String>{
+  static const Map<String, String> _patternGoals = <String, String>{
     'Box Breathing':
-      'Goal: steady the nervous system and improve focus. Equal inhale/hold/exhale timing can reduce stress spikes.',
+        'Goal: steady the nervous system and improve focus. Equal inhale/hold/exhale timing can reduce stress spikes.',
     '4-7-8':
-      'Goal: down-regulate and prepare for rest. Long exhale is used to encourage calm and reduce racing thoughts.',
+        'Goal: down-regulate and prepare for rest. Long exhale is used to encourage calm and reduce racing thoughts.',
     'Relaxed':
-      'Goal: gentle recovery breathing with no hold. Useful when you want calm breathing without strain.',
+        'Goal: gentle recovery breathing with no hold. Useful when you want calm breathing without strain.',
     'Custom':
-      'Goal: tailor timing to comfort and symptoms. Keep breath smooth and avoid pushing into discomfort.',
-    };
+        'Goal: tailor timing to comfort and symptoms. Keep breath smooth and avoid pushing into discomfort.',
+  };
 
-    static const String _howToBreathe =
+  static const String _howToBreathe =
       'How to breathe: sit upright with shoulders relaxed, inhale through your nose, keep the breath soft during holds, then exhale slowly through your mouth. Stop if you feel dizzy and restart with shorter timings.';
 
   void _applyPreset(String value) {
@@ -69,88 +69,101 @@ class _BreathingScreenState extends ConsumerState<BreathingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Breathing')),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: <Widget>[
-          DropdownButtonFormField<String>(
-            value: _pattern,
-            decoration: const InputDecoration(labelText: 'Pattern'),
-            items: const <DropdownMenuItem<String>>[
-              DropdownMenuItem(
-                  value: 'Box Breathing', child: Text('Box Breathing')),
-              DropdownMenuItem(value: '4-7-8', child: Text('4-7-8')),
-              DropdownMenuItem(value: 'Relaxed', child: Text('Relaxed')),
-              DropdownMenuItem(value: 'Custom', child: Text('Custom')),
+      appBar: AppBar(
+        title: const Text('Breathing'),
+        centerTitle: true,
+      ),
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 560),
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: <Widget>[
+              DropdownButtonFormField<String>(
+                value: _pattern,
+                decoration: const InputDecoration(labelText: 'Pattern'),
+                items: const <DropdownMenuItem<String>>[
+                  DropdownMenuItem(
+                      value: 'Box Breathing', child: Text('Box Breathing')),
+                  DropdownMenuItem(value: '4-7-8', child: Text('4-7-8')),
+                  DropdownMenuItem(value: 'Relaxed', child: Text('Relaxed')),
+                  DropdownMenuItem(value: 'Custom', child: Text('Custom')),
+                ],
+                onChanged: (String? value) {
+                  if (value != null) {
+                    _applyPreset(value);
+                  }
+                },
+              ),
+              const SizedBox(height: 32),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    Text(
+                      _howToBreathe,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      _patternGoals[_pattern] ?? '',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 48),
+              const Divider(color: Color(0xFFEEEEEE), height: 1),
+              const SizedBox(height: 32),
+              Center(child: Text('Inhale: $_inhale s')),
+              Slider(
+                value: _inhale.toDouble(),
+                min: 1,
+                max: 15,
+                divisions: 14,
+                onChanged: (double value) =>
+                    setState(() => _inhale = value.round()),
+              ),
+              Center(child: Text('Hold: $_hold s')),
+              Slider(
+                value: _hold.toDouble(),
+                min: 0,
+                max: 15,
+                divisions: 15,
+                onChanged: (double value) =>
+                    setState(() => _hold = value.round()),
+              ),
+              Center(child: Text('Exhale: $_exhale s')),
+              Slider(
+                value: _exhale.toDouble(),
+                min: 1,
+                max: 15,
+                divisions: 14,
+                onChanged: (double value) =>
+                    setState(() => _exhale = value.round()),
+              ),
+              Center(child: Text('Cycles: $_cycles')),
+              Slider(
+                value: _cycles.toDouble(),
+                min: 1,
+                max: 20,
+                divisions: 19,
+                onChanged: (double value) =>
+                    setState(() => _cycles = value.round()),
+              ),
+              const SizedBox(height: 8),
+              Center(
+                child: FilledButton(
+                  onPressed: _startSession,
+                  child: const Text('Start Session'),
+                ),
+              ),
             ],
-            onChanged: (String? value) {
-              if (value != null) {
-                _applyPreset(value);
-              }
-            },
           ),
-          const SizedBox(height: 32),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  _howToBreathe,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  _patternGoals[_pattern] ?? '',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 48),
-          const Divider(color: Color(0xFFEEEEEE), height: 1),
-          const SizedBox(height: 32),
-          Text('Inhale: $_inhale s'),
-          Slider(
-            value: _inhale.toDouble(),
-            min: 1,
-            max: 15,
-            divisions: 14,
-            onChanged: (double value) =>
-                setState(() => _inhale = value.round()),
-          ),
-          Text('Hold: $_hold s'),
-          Slider(
-            value: _hold.toDouble(),
-            min: 0,
-            max: 15,
-            divisions: 15,
-            onChanged: (double value) => setState(() => _hold = value.round()),
-          ),
-          Text('Exhale: $_exhale s'),
-          Slider(
-            value: _exhale.toDouble(),
-            min: 1,
-            max: 15,
-            divisions: 14,
-            onChanged: (double value) =>
-                setState(() => _exhale = value.round()),
-          ),
-          Text('Cycles: $_cycles'),
-          Slider(
-            value: _cycles.toDouble(),
-            min: 1,
-            max: 20,
-            divisions: 19,
-            onChanged: (double value) =>
-                setState(() => _cycles = value.round()),
-          ),
-          const SizedBox(height: 8),
-          FilledButton(
-            onPressed: _startSession,
-            child: const Text('Start Session'),
-          ),
-        ],
+        ),
       ),
     );
   }

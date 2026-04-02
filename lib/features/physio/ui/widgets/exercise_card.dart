@@ -28,10 +28,11 @@ class ExerciseCard extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 8),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
             Text(
               exercise.name.toUpperCase(),
+              textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.labelLarge?.copyWith(
                     color: const Color(0xFFBDBDBD),
                     letterSpacing: 2.0,
@@ -40,6 +41,7 @@ class ExerciseCard extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               dosage,
+              textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontSize: 20,
                     color: const Color(0xFF424242),
@@ -48,12 +50,14 @@ class ExerciseCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               exercise.description,
-              maxLines: 2,
+              maxLines: 3,
               overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 24),
             Wrap(
+              alignment: WrapAlignment.center,
               spacing: 16,
               runSpacing: 16,
               children: <Widget>[
@@ -62,7 +66,8 @@ class ExerciseCard extends StatelessWidget {
                   style: TextButton.styleFrom(
                     foregroundColor: const Color(0xFF9E9E9E),
                   ),
-                  child: Text(isPlanned ? 'REMOVE PLAN' : 'ADD TO PLAN', style: const TextStyle(letterSpacing: 1.5)),
+                  child: Text(isPlanned ? 'REMOVE PLAN' : 'ADD TO PLAN',
+                      style: const TextStyle(letterSpacing: 1.5)),
                 ),
               ],
             ),

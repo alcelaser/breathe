@@ -80,9 +80,18 @@ class _AddMealSheetFormState extends State<_AddMealSheetForm> {
           ? null
           : _notesController.text.trim(),
     );
-    await widget.onSave(meal);
-    if (mounted) {
-      Navigator.of(context).pop();
+    try {
+      await widget.onSave(meal);
+      if (mounted) {
+        Navigator.of(context).pop();
+      }
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Unable to save meal. Please try again.')),
+      );
     }
   }
 
@@ -97,62 +106,68 @@ class _AddMealSheetFormState extends State<_AddMealSheetForm> {
       ),
       child: Form(
         key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text(
-              widget.initialMeal == null ? 'Add Meal' : 'Edit Meal',
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 520),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                Text(
+                  widget.initialMeal == null ? 'Add Meal' : 'Edit Meal',
+                  style: const TextStyle(
+                      fontSize: 18, fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  spacing: 8,
+                  children: MealTimeOfDay.values.map((MealTimeOfDay value) {
+                    return ChoiceChip(
+                      label: Text(value.name),
+                      selected: _selected == value,
+                      onSelected: (_) => setState(() => _selected = value),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _descriptionController,
+                  maxLength: 200,
+                  decoration: const InputDecoration(labelText: 'Description'),
+                  validator: (String? value) {
+                    final String text = value?.trim() ?? '';
+                    if (text.isEmpty) {
+                      return 'Description is required';
+                    }
+                    return null;
+                  },
+                ),
+                TextFormField(
+                  controller: _quantityController,
+                  decoration: const InputDecoration(
+                      labelText: 'Quantity (e.g., 1 cup, 100g)'),
+                  validator: (String? value) {
+                    final String text = value?.trim() ?? '';
+                    if (text.isEmpty) {
+                      return 'Quantity is required';
+                    }
+                    return null;
+                  },
+                ),
+                TextFormField(
+                  controller: _notesController,
+                  decoration:
+                      const InputDecoration(labelText: 'Notes (optional)'),
+                ),
+                const SizedBox(height: 12),
+                FilledButton(
+                  onPressed: _save,
+                  child: Text(widget.initialMeal == null ? 'Add' : 'Update'),
+                ),
+              ],
             ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              children: MealTimeOfDay.values.map((MealTimeOfDay value) {
-                return ChoiceChip(
-                  label: Text(value.name),
-                  selected: _selected == value,
-                  onSelected: (_) => setState(() => _selected = value),
-                );
-              }).toList(),
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _descriptionController,
-              maxLength: 200,
-              decoration: const InputDecoration(labelText: 'Description'),
-              validator: (String? value) {
-                final String text = value?.trim() ?? '';
-                if (text.isEmpty) {
-                  return 'Description is required';
-                }
-                return null;
-              },
-            ),
-            TextFormField(
-              controller: _quantityController,
-              decoration: const InputDecoration(labelText: 'Quantity (e.g., 1 cup, 100g)'),
-              validator: (String? value) {
-                final String text = value?.trim() ?? '';
-                if (text.isEmpty) {
-                  return 'Quantity is required';
-                }
-                return null;
-              },
-            ),
-            TextFormField(
-              controller: _notesController,
-              decoration: const InputDecoration(labelText: 'Notes (optional)'),
-            ),
-            const SizedBox(height: 12),
-            Align(
-              alignment: Alignment.centerRight,
-              child: FilledButton(
-                onPressed: _save,
-                child: Text(widget.initialMeal == null ? 'Add' : 'Update'),
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );

@@ -94,7 +94,7 @@ class PhysioNotifier extends AsyncNotifier<PhysioState> {
     final List<ExerciseLog> logs = await _logRepository.getLogsForDate(today);
     final Set<String> planIds = await _logRepository.getPlannedExerciseIds();
     final Map<String, int> repsToday =
-      await _logRepository.getPlanRepsForDate(selectedDate);
+        await _logRepository.getPlanRepsForDate(selectedDate);
     final Map<String, List<PlanProgressEntry>> history =
         <String, List<PlanProgressEntry>>{};
     for (final String exerciseId in planIds) {

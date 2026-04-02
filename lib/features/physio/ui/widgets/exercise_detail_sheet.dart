@@ -17,7 +17,7 @@ class ExerciseDetailSheet extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       child: SingleChildScrollView(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -26,6 +26,7 @@ class ExerciseDetailSheet extends StatelessWidget {
                 Expanded(
                   child: Text(
                     exercise.name,
+                    textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
                 ),
@@ -44,40 +45,55 @@ class ExerciseDetailSheet extends StatelessWidget {
                 child: Image.asset(
                   'assets/poses/${exercise.id}.png',
                   height: 180,
-                  errorBuilder: (BuildContext context, Object error, StackTrace? stackTrace) => const SizedBox(),
+                  errorBuilder: (BuildContext context, Object error,
+                          StackTrace? stackTrace) =>
+                      const SizedBox(),
                 ),
               ),
             ),
             const SizedBox(height: 16),
             Wrap(
+              alignment: WrapAlignment.center,
               spacing: 8,
               children: exercise.bodyAreas
                   .map((String item) => Chip(label: Text(item)))
                   .toList(),
             ),
             Wrap(
+              alignment: WrapAlignment.center,
               spacing: 8,
               children: exercise.goals
                   .map((String item) => Chip(label: Text(item)))
                   .toList(),
             ),
             const SizedBox(height: 8),
-            Text(exercise.description),
+            Text(exercise.description, textAlign: TextAlign.center),
             const SizedBox(height: 8),
-            Text('Sets: ${exercise.sets?.toString() ?? '-'}'),
-            Text('Reps: ${exercise.reps?.toString() ?? '-'}'),
-            Text('Duration: ${exercise.durationSeconds?.toString() ?? '-'} s'),
-            Text('Rest: ${exercise.restSeconds} s'),
-            if (exercise.notes != null) Text('Notes: ${exercise.notes}'),
+            Text('Sets: ${exercise.sets?.toString() ?? '-'}',
+                textAlign: TextAlign.center),
+            Text('Reps: ${exercise.reps?.toString() ?? '-'}',
+                textAlign: TextAlign.center),
+            Text(
+              'Duration: ${exercise.durationSeconds?.toString() ?? '-'} s',
+              textAlign: TextAlign.center,
+            ),
+            Text('Rest: ${exercise.restSeconds} s',
+                textAlign: TextAlign.center),
+            if (exercise.notes != null)
+              Text('Notes: ${exercise.notes}', textAlign: TextAlign.center),
             const SizedBox(height: 12),
             const Text('Evidence',
                 style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 4),
-            Text('Level: ${exercise.pedro.evidenceLevel}'),
+            Text('Level: ${exercise.pedro.evidenceLevel}',
+                textAlign: TextAlign.center),
             Text(
-                'PEDro score: ${exercise.pedro.pedroScore?.toString() ?? 'N/A'}'),
-            Text('Reference: ${exercise.pedro.reference}'),
-            Text('DOI: ${exercise.pedro.doi ?? 'N/A'}'),
+                'PEDro score: ${exercise.pedro.pedroScore?.toString() ?? 'N/A'}',
+                textAlign: TextAlign.center),
+            Text('Reference: ${exercise.pedro.reference}',
+                textAlign: TextAlign.center),
+            Text('DOI: ${exercise.pedro.doi ?? 'N/A'}',
+                textAlign: TextAlign.center),
           ],
         ),
       ),

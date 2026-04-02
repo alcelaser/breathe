@@ -7,7 +7,7 @@ class DatabaseHelper {
   DatabaseHelper._internal();
 
   static final DatabaseHelper instance = DatabaseHelper._internal();
-  static const int schemaVersion = 3;
+  static const int schemaVersion = 4;
   static const String databaseName = 'recovery_app.db';
 
   Database? _database;
@@ -52,5 +52,24 @@ class DatabaseHelper {
     if (oldVersion < 3) {
       await db.execute(Tables.createExercisePlanProgress);
     }
+    if (oldVersion < 4) {
+      final bool hasQuantityColumn =
+          await _tableHasColumn(db, table: Tables.meals, column: 'quantity');
+      if (!hasQuantityColumn) {
+        await db.execute(
+          "ALTER TABLE ${Tables.meals} ADD COLUMN quantity TEXT NOT NULL DEFAULT ''",
+        );
+      }
+    }
+  }
+
+  static Future<bool> _tableHasColumn(
+    Database db, {
+    required String table,
+    required String column,
+  }) async {
+    final List<Map<String, Object?>> info =
+        await db.rawQuery('PRAGMA table_info($table)');
+    return info.any((Map<String, Object?> row) => row['name'] == column);
   }
 }

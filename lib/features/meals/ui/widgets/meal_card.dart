@@ -28,20 +28,27 @@ class MealCard extends StatelessWidget {
       child: Card(
         child: ListTile(
           title: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
                 meal.description,
+                textAlign: TextAlign.center,
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 4),
               Text(
                 '${meal.timeOfDay.name.toUpperCase()} • ${meal.quantity}',
+                textAlign: TextAlign.center,
                 style: const TextStyle(fontSize: 12, color: Color(0xFF9E9E9E)),
               ),
             ],
           ),
-          subtitle: meal.notes == null ? null : Text(meal.notes!),
+          subtitle: meal.notes == null
+              ? null
+              : Text(
+                  meal.notes!,
+                  textAlign: TextAlign.center,
+                ),
           trailing: SizedBox(
             width: 100,
             child: Row(

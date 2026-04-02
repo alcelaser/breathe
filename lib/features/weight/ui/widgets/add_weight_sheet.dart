@@ -69,37 +69,43 @@ class _AddWeightSheetFormState extends State<_AddWeightSheetForm> {
       ),
       child: Form(
         key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            Row(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 520),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: <Widget>[
-                Expanded(
-                    child: Text(
-                        'Date: ${_date.toIso8601String().split('T').first}')),
-                TextButton(
-                    onPressed: _pickDate, child: const Text('Pick date')),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
+                    Expanded(
+                      child: Text(
+                        'Date: ${_date.toIso8601String().split('T').first}',
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                    TextButton(
+                        onPressed: _pickDate, child: const Text('Pick date')),
+                  ],
+                ),
+                TextFormField(
+                  controller: _weightController,
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  decoration: const InputDecoration(labelText: 'Weight (kg)'),
+                  validator: (String? value) {
+                    final double? parsed = double.tryParse(value?.trim() ?? '');
+                    if (parsed == null || parsed < 30 || parsed > 300) {
+                      return 'Enter a weight between 30 and 300';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 12),
+                FilledButton(onPressed: _save, child: const Text('Save')),
               ],
             ),
-            TextFormField(
-              controller: _weightController,
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
-              decoration: const InputDecoration(labelText: 'Weight (kg)'),
-              validator: (String? value) {
-                final double? parsed = double.tryParse(value?.trim() ?? '');
-                if (parsed == null || parsed < 30 || parsed > 300) {
-                  return 'Enter a weight between 30 and 300';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 12),
-            Align(
-              alignment: Alignment.centerRight,
-              child: FilledButton(onPressed: _save, child: const Text('Save')),
-            ),
-          ],
+          ),
         ),
       ),
     );

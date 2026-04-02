@@ -25,24 +25,20 @@ class ExerciseFilterChips extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 52,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        children: <Widget>[
-          ...bodyAreas.map((String area) {
-            return Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: FilterChip(
-                label: Text(area.replaceAll('_', ' ')),
-                selected: selected.contains(area),
-                onSelected: (_) => onToggle(area),
-              ),
-            );
-          }),
-          TextButton(onPressed: onClear, child: const Text('Clear')),
-        ],
-      ),
+    return Wrap(
+      alignment: WrapAlignment.center,
+      spacing: 8,
+      runSpacing: 8,
+      children: <Widget>[
+        ...bodyAreas.map((String area) {
+          return FilterChip(
+            label: Text(area.replaceAll('_', ' ')),
+            selected: selected.contains(area),
+            onSelected: (_) => onToggle(area),
+          );
+        }),
+        TextButton(onPressed: onClear, child: const Text('Clear')),
+      ],
     );
   }
 }

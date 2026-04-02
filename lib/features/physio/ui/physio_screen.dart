@@ -40,72 +40,86 @@ class PhysioScreen extends ConsumerWidget {
                     (Exercise item) => data.loggedExerciseIds.contains(item.id))
                 .toList();
 
-            return ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
-              children: <Widget>[
-                Text(
-                  'PHYSIO',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        letterSpacing: 4.0,
-                        fontWeight: FontWeight.w400,
-                      ),
-                ),
-                const SizedBox(height: 32),
-                ExerciseFilterChips(
-                  selected: data.selectedBodyAreas,
-                  onToggle: (String area) => ref
-                      .read(physioNotifierProvider.notifier)
-                      .toggleBodyArea(area),
-                  onClear: () =>
-                      ref.read(physioNotifierProvider.notifier).clearFilters(),
-                ),
-                const SizedBox(height: 16),
-                if (completedToday.isNotEmpty) ...<Widget>[
-                  const SizedBox(height: 8),
-                  Text('TODAY\'S SESSION', style: Theme.of(context).textTheme.labelLarge?.copyWith(letterSpacing: 2.0, color: const Color(0xFFBDBDBD))),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    height: 56,
-                    child: ListView(
-                      scrollDirection: Axis.horizontal,
-                      children: completedToday
-                          .map((Exercise exercise) => Padding(
-                                padding: const EdgeInsets.only(right: 8),
-                                child: Chip(label: Text(exercise.name)),
-                              ))
-                          .toList(),
+            return Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 560),
+                child: ListView(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
+                  children: <Widget>[
+                    Text(
+                      'PHYSIO',
+                      textAlign: TextAlign.center,
+                      style:
+                          Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                letterSpacing: 4.0,
+                                fontWeight: FontWeight.w400,
+                              ),
                     ),
-                  ),
-                ],
-                const SizedBox(height: 16),
-                ...data.filteredExercises.map((Exercise exercise) {
-                  final bool isDone =
-                      data.loggedExerciseIds.contains(exercise.id);
-                  final bool isPlanned =
-                      data.plannedExerciseIds.contains(exercise.id);
-                  return ExerciseCard(
-                    exercise: exercise,
-                    isPlanned: isPlanned,
-                    onTogglePlan: () {
-                      if (isPlanned) {
-                        ref
-                            .read(physioNotifierProvider.notifier)
-                            .removeFromPlan(exercise.id);
-                      } else {
-                        ref
-                            .read(physioNotifierProvider.notifier)
-                            .addToPlan(exercise.id);
-                      }
-                    },
-                    onTap: () => _openDetails(context, ref, exercise, isDone),
-                  );
-                }),
-              ],
+                    const SizedBox(height: 32),
+                    ExerciseFilterChips(
+                      selected: data.selectedBodyAreas,
+                      onToggle: (String area) => ref
+                          .read(physioNotifierProvider.notifier)
+                          .toggleBodyArea(area),
+                      onClear: () => ref
+                          .read(physioNotifierProvider.notifier)
+                          .clearFilters(),
+                    ),
+                    const SizedBox(height: 16),
+                    if (completedToday.isNotEmpty) ...<Widget>[
+                      const SizedBox(height: 8),
+                      Text(
+                        'TODAY\'S SESSION',
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                            letterSpacing: 2.0, color: const Color(0xFFBDBDBD)),
+                      ),
+                      const SizedBox(height: 16),
+                      Wrap(
+                        alignment: WrapAlignment.center,
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: completedToday
+                            .map((Exercise exercise) => Chip(
+                                  label: Text(exercise.name),
+                                ))
+                            .toList(),
+                      ),
+                    ],
+                    const SizedBox(height: 16),
+                    ...data.filteredExercises.map((Exercise exercise) {
+                      final bool isDone =
+                          data.loggedExerciseIds.contains(exercise.id);
+                      final bool isPlanned =
+                          data.plannedExerciseIds.contains(exercise.id);
+                      return ExerciseCard(
+                        exercise: exercise,
+                        isPlanned: isPlanned,
+                        onTogglePlan: () {
+                          if (isPlanned) {
+                            ref
+                                .read(physioNotifierProvider.notifier)
+                                .removeFromPlan(exercise.id);
+                          } else {
+                            ref
+                                .read(physioNotifierProvider.notifier)
+                                .addToPlan(exercise.id);
+                          }
+                        },
+                        onTap: () =>
+                            _openDetails(context, ref, exercise, isDone),
+                      );
+                    }),
+                  ],
+                ),
+              ),
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (Object _, StackTrace __) {
-            return const Center(child: Text('Unable to load physio exercises.'));
+            return const Center(
+                child: Text('Unable to load physio exercises.'));
           },
         ),
       ),
