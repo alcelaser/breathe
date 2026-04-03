@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:recovery_app/core/theme/app_theme.dart';
+import 'package:recovery_app/features/breathing/providers/breathing_providers.dart';
 import 'package:recovery_app/features/breathing/ui/breathing_screen.dart';
 import 'package:recovery_app/features/home/ui/home_screen.dart';
 import 'package:recovery_app/features/meals/ui/meals_screen.dart';
@@ -22,6 +24,32 @@ class RecoveryApp extends StatelessWidget {
   }
 }
 
+Future<bool> _confirmStopBreathingSession(BuildContext context) async {
+  final bool? shouldStop = await showDialog<bool>(
+    context: context,
+    builder: (BuildContext dialogContext) {
+      return AlertDialog(
+        title: const Text('Leave Breathing Session?'),
+        content: const Text(
+          'Switching tabs will stop your current breathing session.',
+        ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Stay'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Stop and Leave'),
+          ),
+        ],
+      );
+    },
+  );
+
+  return shouldStop ?? false;
+}
+
 final GoRouter _router = GoRouter(
   initialLocation: '/',
   routes: <RouteBase>[
@@ -37,7 +65,37 @@ final GoRouter _router = GoRouter(
           body: navigationShell,
           bottomNavigationBar: NavigationBar(
             selectedIndex: navigationShell.currentIndex,
-            onDestinationSelected: (int index) {
+            onDestinationSelected: (int index) async {
+              final bool switchingBranch = index != navigationShell.currentIndex;
+              final bool isActiveBreathingRoute =
+                  state.uri.toString().startsWith('/breathing/session');
+              final ProviderContainer container =
+                  ProviderScope.containerOf(context, listen: false);
+              final BreathingState? breathingState =
+                  container.read(breathingNotifierProvider).valueOrNull;
+              final bool shouldConfirmStop =
+                  switchingBranch && isActiveBreathingRoute &&
+                  (breathingState?.isRunning ?? false);
+
+              if (shouldConfirmStop) {
+                final bool confirmStop =
+                    await _confirmStopBreathingSession(context);
+                if (!confirmStop) {
+                  return;
+                }
+
+                await container
+                    .read(breathingNotifierProvider.notifier)
+                    .stopEarly();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Breathing session stopped.'),
+                    ),
+                  );
+                }
+              }
+
               navigationShell.goBranch(
                 index,
                 initialLocation: index == navigationShell.currentIndex,

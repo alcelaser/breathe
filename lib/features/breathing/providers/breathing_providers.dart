@@ -299,7 +299,13 @@ class BreathingNotifier extends AsyncNotifier<BreathingState> {
     } else if (current.vibrationLevel == BreathingVibrationLevel.medium) {
       HapticFeedback.mediumImpact();
     } else {
-      HapticFeedback.heavyImpact();
+      HapticFeedback.vibrate();
+      unawaited(
+        Future<void>.delayed(
+          const Duration(milliseconds: 120),
+          () => HapticFeedback.heavyImpact(),
+        ),
+      );
     }
     SystemSound.play(SystemSoundType.alert);
   }
