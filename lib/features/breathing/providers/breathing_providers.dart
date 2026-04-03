@@ -9,6 +9,8 @@ import 'package:recovery_app/features/breathing/data/models/breathing_session.da
 
 enum BreathingPhase { inhale, hold, exhale, completed }
 
+enum BreathingVibrationLevel { off, light, medium, heavy }
+
 class BreathingState {
   const BreathingState({
     required this.phase,
@@ -20,6 +22,7 @@ class BreathingState {
     required this.targetCycles,
     required this.completedCycles,
     required this.patternName,
+    required this.vibrationLevel,
     required this.isRunning,
     required this.isPaused,
     required this.didFinish,
@@ -36,6 +39,7 @@ class BreathingState {
       targetCycles: 5,
       completedCycles: 0,
       patternName: 'Box Breathing',
+      vibrationLevel: BreathingVibrationLevel.light,
       isRunning: false,
       isPaused: false,
       didFinish: false,
@@ -51,6 +55,7 @@ class BreathingState {
   final int targetCycles;
   final int completedCycles;
   final String patternName;
+  final BreathingVibrationLevel vibrationLevel;
   final bool isRunning;
   final bool isPaused;
   final bool didFinish;
@@ -65,6 +70,7 @@ class BreathingState {
     int? targetCycles,
     int? completedCycles,
     String? patternName,
+    BreathingVibrationLevel? vibrationLevel,
     bool? isRunning,
     bool? isPaused,
     bool? didFinish,
@@ -79,6 +85,7 @@ class BreathingState {
       targetCycles: targetCycles ?? this.targetCycles,
       completedCycles: completedCycles ?? this.completedCycles,
       patternName: patternName ?? this.patternName,
+      vibrationLevel: vibrationLevel ?? this.vibrationLevel,
       isRunning: isRunning ?? this.isRunning,
       isPaused: isPaused ?? this.isPaused,
       didFinish: didFinish ?? this.didFinish,
@@ -120,6 +127,7 @@ class BreathingNotifier extends AsyncNotifier<BreathingState> {
     required int hold,
     required int exhale,
     required int cycles,
+    BreathingVibrationLevel vibrationLevel = BreathingVibrationLevel.light,
   }) async {
     final BreathingState next = BreathingState.initial().copyWith(
       patternName: patternName,
@@ -127,6 +135,7 @@ class BreathingNotifier extends AsyncNotifier<BreathingState> {
       holdSeconds: hold,
       exhaleSeconds: exhale,
       targetCycles: cycles,
+      vibrationLevel: vibrationLevel,
       phase: BreathingPhase.inhale,
       secondsRemaining: inhale,
       phaseDuration: inhale,
@@ -224,7 +233,7 @@ class BreathingNotifier extends AsyncNotifier<BreathingState> {
 
   Future<void> stopEarly() async {
     final BreathingState? current = state.valueOrNull;
-    if (current == null) {
+    if (current == null || !current.isRunning) {
       return;
     }
     _timer?.cancel();
@@ -277,10 +286,21 @@ class BreathingNotifier extends AsyncNotifier<BreathingState> {
   }
 
   void _playPhaseCue() {
-    if (kIsWeb) {
+    final BreathingState? current = state.valueOrNull;
+    if (kIsWeb || current == null) {
       return;
     }
-    HapticFeedback.lightImpact();
+    if (current.vibrationLevel == BreathingVibrationLevel.off) {
+      return;
+    }
+
+    if (current.vibrationLevel == BreathingVibrationLevel.light) {
+      HapticFeedback.lightImpact();
+    } else if (current.vibrationLevel == BreathingVibrationLevel.medium) {
+      HapticFeedback.mediumImpact();
+    } else {
+      HapticFeedback.heavyImpact();
+    }
     SystemSound.play(SystemSoundType.alert);
   }
 }
