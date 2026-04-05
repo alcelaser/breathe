@@ -80,6 +80,25 @@ final physioCompletedTodayCountProvider = FutureProvider<int>((Ref ref) async {
       .length;
 });
 
+final physioTodayProgressProvider =
+    FutureProvider<({int exercisesDone, int totalReps})>((Ref ref) async {
+  final PhysioState state = await ref.watch(physioNotifierProvider.future);
+  final ExerciseLogRepository repository = ref.watch(exerciseLogRepositoryProvider);
+  final DateTime now = DateTime.now();
+  final DateTime today = DateTime(now.year, now.month, now.day);
+  final Map<String, int> repsToday = await repository.getPlanRepsForDate(today);
+
+  final int exercisesDone = state.plannedExerciseIds
+      .where(state.loggedExerciseIds.contains)
+      .length;
+  final int totalReps = state.plannedExerciseIds.fold<int>(
+    0,
+    (int total, String exerciseId) => total + (repsToday[exerciseId] ?? 0),
+  );
+
+  return (exercisesDone: exercisesDone, totalReps: totalReps);
+});
+
 class PhysioNotifier extends AsyncNotifier<PhysioState> {
   ExerciseRepository get _exerciseRepository =>
       ref.read(exerciseRepositoryProvider);

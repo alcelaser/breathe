@@ -53,7 +53,7 @@ class HomeScreen extends ConsumerWidget {
     final breathing = ref.watch(breathingTodayProvider);
     final mealsCount = ref.watch(mealsCountTodayProvider);
     final latestWeight = ref.watch(latestWeightSummaryProvider);
-    final physioCount = ref.watch(physioCompletedTodayCountProvider);
+    final physioProgress = ref.watch(physioTodayProgressProvider);
 
     return Scaffold(
       body: SafeArea(
@@ -112,8 +112,13 @@ class HomeScreen extends ConsumerWidget {
                 _summaryItem(
                   context: context,
                   title: 'Physio',
-                  summary: physioCount.when(
-                    data: (value) => '$value exercises completed today',
+                  summary: physioProgress.when(
+                    data: (value) {
+                      if (value.exercisesDone == 0 && value.totalReps == 0) {
+                        return 'No progress logged today';
+                      }
+                      return '${value.exercisesDone} done • ${value.totalReps} reps today';
+                    },
                     loading: () => 'Loading...',
                     error: (_, __) => 'Unavailable',
                   ),

@@ -111,4 +111,18 @@ void main() {
       contains('e1'),
     );
   });
+
+  test('today progress includes reps even when exercise is not marked done',
+      () async {
+    when(() => logRepository.getPlannedExerciseIds())
+        .thenAnswer((_) async => <String>{'e1'});
+    when(() => logRepository.getPlanRepsForDate(any()))
+        .thenAnswer((_) async => <String, int>{'e1': 12});
+
+    await container.read(physioNotifierProvider.future);
+    final progress = await container.read(physioTodayProgressProvider.future);
+
+    expect(progress.exercisesDone, 0);
+    expect(progress.totalReps, 12);
+  });
 }
