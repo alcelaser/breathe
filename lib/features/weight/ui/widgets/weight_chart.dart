@@ -19,8 +19,22 @@ class WeightChart extends StatelessWidget {
       );
     }
 
+    final List<WeightEntry> orderedEntries = <WeightEntry>[...entries]
+      ..sort((WeightEntry a, WeightEntry b) => a.date.compareTo(b.date));
     final List<WeightEntry> chartEntries =
-        entries.length > 12 ? entries.sublist(entries.length - 12) : entries;
+        orderedEntries.length > 12
+            ? orderedEntries.sublist(orderedEntries.length - 12)
+            : orderedEntries;
+    final DateTime firstDate = chartEntries.first.date;
+    final List<FlSpot> spots = chartEntries.map((WeightEntry entry) {
+      final double daysSinceFirst =
+          entry.date.difference(firstDate).inMinutes / Duration.minutesPerDay;
+      return FlSpot(daysSinceFirst, entry.weightKg);
+    }).toList();
+
+    final double minX = spots.first.x;
+    final double maxX =
+        spots.last.x == minX ? minX + 1 : spots.last.x;
     final List<double> values =
         chartEntries.map((WeightEntry item) => item.weightKg).toList();
     final double minY =
@@ -32,17 +46,14 @@ class WeightChart extends StatelessWidget {
       height: 220,
       child: LineChart(
         LineChartData(
+          minX: minX,
+          maxX: maxX,
           minY: minY,
           maxY: maxY,
           lineBarsData: <LineChartBarData>[
             LineChartBarData(
               isCurved: true,
-              spots: chartEntries
-                  .asMap()
-                  .entries
-                  .map((MapEntry<int, WeightEntry> entry) {
-                return FlSpot(entry.key.toDouble(), entry.value.weightKg);
-              }).toList(),
+              spots: spots,
             ),
           ],
           titlesData: const FlTitlesData(show: false),

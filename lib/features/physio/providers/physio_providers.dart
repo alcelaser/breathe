@@ -74,8 +74,10 @@ final selectedPlanDateProvider = StateProvider<DateTime>((Ref ref) {
 });
 
 final physioCompletedTodayCountProvider = FutureProvider<int>((Ref ref) async {
-  final logs = await ref.watch(physioNotifierProvider.future);
-  return logs.loggedExerciseIds.length;
+  final PhysioState state = await ref.watch(physioNotifierProvider.future);
+  return state.plannedExerciseIds
+      .where(state.loggedExerciseIds.contains)
+      .length;
 });
 
 class PhysioNotifier extends AsyncNotifier<PhysioState> {
