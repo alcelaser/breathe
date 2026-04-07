@@ -87,33 +87,63 @@ class MealsScreen extends ConsumerWidget {
                         return const Center(child: Text('Nothing logged yet'));
                       }
 
-                      return ListView(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 24, vertical: 16),
-                        children: meals.map((Meal meal) {
-                          return MealCard(
-                            meal: meal,
-                            onEdit: () => _openAddSheet(
-                                context, ref, selectedDate,
-                                meal: meal),
-                            onRemove: () async {
-                              final int? id = meal.id;
-                              if (id == null) {
-                                return;
-                              }
-                              await ref
-                                  .read(mealNotifierProvider.notifier)
-                                  .deleteMeal(id);
-                              if (!context.mounted) {
-                                return;
-                              }
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text('Meal deleted. Undo?')),
+                      return LayoutBuilder(
+                        builder:
+                            (BuildContext context, BoxConstraints constraints) {
+                          final double cardWidth = (constraints.maxWidth - 64)
+                              .clamp(260.0, 420.0)
+                              .toDouble();
+
+                          return PageView.builder(
+                            pageSnapping: true,
+                            itemCount: meals.length,
+                            itemBuilder: (BuildContext context, int index) {
+                              final Meal meal = meals[index];
+                              return Padding(
+                                padding: EdgeInsets.fromLTRB(
+                                  index == 0 ? 24 : 12,
+                                  16,
+                                  index == meals.length - 1 ? 24 : 12,
+                                  16,
+                                ),
+                                child: Center(
+                                  child: SizedBox(
+                                    width: cardWidth,
+                                    child: MealCard(
+                                      meal: meal,
+                                      enableSwipeToDelete: false,
+                                      onEdit: () => _openAddSheet(
+                                        context,
+                                        ref,
+                                        selectedDate,
+                                        meal: meal,
+                                      ),
+                                      onRemove: () async {
+                                        final int? id = meal.id;
+                                        if (id == null) {
+                                          return;
+                                        }
+                                        await ref
+                                            .read(mealNotifierProvider.notifier)
+                                            .deleteMeal(id);
+                                        if (!context.mounted) {
+                                          return;
+                                        }
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                            content:
+                                                Text('Meal deleted. Undo?'),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ),
                               );
                             },
                           );
-                        }).toList(),
+                        },
                       );
                     },
                     loading: () =>
