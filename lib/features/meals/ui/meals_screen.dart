@@ -9,6 +9,12 @@ import 'package:recovery_app/features/meals/ui/widgets/meal_card.dart';
 class MealsScreen extends ConsumerWidget {
   const MealsScreen({super.key});
 
+  void _loadRelativeDate(WidgetRef ref, DateTime selectedDate, int dayOffset) {
+    ref
+        .read(mealNotifierProvider.notifier)
+        .loadForDate(selectedDate.add(Duration(days: dayOffset)));
+  }
+
   Future<void> _openAddSheet(BuildContext context, WidgetRef ref, DateTime date,
       {Meal? meal}) async {
     await showModalBottomSheet<void>(
@@ -49,9 +55,7 @@ class MealsScreen extends ConsumerWidget {
                     children: <Widget>[
                       IconButton(
                         onPressed: () {
-                          ref.read(mealNotifierProvider.notifier).loadForDate(
-                                selectedDate.subtract(const Duration(days: 1)),
-                              );
+                          _loadRelativeDate(ref, selectedDate, -1);
                         },
                         icon: const Icon(Icons.chevron_left),
                       ),
@@ -71,9 +75,7 @@ class MealsScreen extends ConsumerWidget {
                       ),
                       IconButton(
                         onPressed: () {
-                          ref.read(mealNotifierProvider.notifier).loadForDate(
-                                selectedDate.add(const Duration(days: 1)),
-                              );
+                          _loadRelativeDate(ref, selectedDate, 1);
                         },
                         icon: const Icon(Icons.chevron_right),
                       ),
@@ -83,67 +85,57 @@ class MealsScreen extends ConsumerWidget {
                 Expanded(
                   child: mealsState.when(
                     data: (List<Meal> meals) {
-                      if (meals.isEmpty) {
-                        return const Center(child: Text('Nothing logged yet'));
-                      }
-
-                      return LayoutBuilder(
-                        builder:
-                            (BuildContext context, BoxConstraints constraints) {
-                          final double cardWidth = (constraints.maxWidth - 64)
-                              .clamp(260.0, 420.0)
-                              .toDouble();
-
-                          return PageView.builder(
-                            pageSnapping: true,
-                            itemCount: meals.length,
-                            itemBuilder: (BuildContext context, int index) {
-                              final Meal meal = meals[index];
-                              return Padding(
-                                padding: EdgeInsets.fromLTRB(
-                                  index == 0 ? 24 : 12,
-                                  16,
-                                  index == meals.length - 1 ? 24 : 12,
-                                  16,
-                                ),
-                                child: Center(
-                                  child: SizedBox(
-                                    width: cardWidth,
-                                    child: MealCard(
-                                      meal: meal,
-                                      enableSwipeToDelete: false,
-                                      onEdit: () => _openAddSheet(
-                                        context,
-                                        ref,
-                                        selectedDate,
-                                        meal: meal,
-                                      ),
-                                      onRemove: () async {
-                                        final int? id = meal.id;
-                                        if (id == null) {
-                                          return;
-                                        }
-                                        await ref
-                                            .read(mealNotifierProvider.notifier)
-                                            .deleteMeal(id);
-                                        if (!context.mounted) {
-                                          return;
-                                        }
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          const SnackBar(
-                                            content:
-                                                Text('Meal deleted. Undo?'),
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
+                      return GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onHorizontalDragEnd: (DragEndDetails details) {
+                          final double velocity = details.primaryVelocity ?? 0;
+                          if (velocity.abs() < 250) {
+                            return;
+                          }
+                          _loadRelativeDate(
+                            ref,
+                            selectedDate,
+                            velocity < 0 ? 1 : -1,
                           );
                         },
+                        child: meals.isEmpty
+                            ? const Center(child: Text('Nothing logged yet'))
+                            : ListView(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 24,
+                                  vertical: 16,
+                                ),
+                                children: meals.map((Meal meal) {
+                                  return MealCard(
+                                    meal: meal,
+                                    enableSwipeToDelete: false,
+                                    onEdit: () => _openAddSheet(
+                                      context,
+                                      ref,
+                                      selectedDate,
+                                      meal: meal,
+                                    ),
+                                    onRemove: () async {
+                                      final int? id = meal.id;
+                                      if (id == null) {
+                                        return;
+                                      }
+                                      await ref
+                                          .read(mealNotifierProvider.notifier)
+                                          .deleteMeal(id);
+                                      if (!context.mounted) {
+                                        return;
+                                      }
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                          content: Text('Meal deleted. Undo?'),
+                                        ),
+                                      );
+                                    },
+                                  );
+                                }).toList(),
+                              ),
                       );
                     },
                     loading: () =>

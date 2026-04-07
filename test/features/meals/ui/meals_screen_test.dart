@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:recovery_app/features/meals/data/meal_repository.dart';
 import 'package:recovery_app/features/meals/data/models/meal.dart';
 import 'package:recovery_app/features/meals/providers/meal_providers.dart';
 import 'package:recovery_app/features/meals/ui/meals_screen.dart';
@@ -22,12 +23,14 @@ void main() {
     expect(find.text('Nothing logged yet'), findsOneWidget);
   });
 
-  testWidgets('shows meals in horizontal side-scrolling pages',
-      (WidgetTester tester) async {
+  testWidgets('swipes between full day screens', (WidgetTester tester) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          mealNotifierProvider.overrideWith(() => _FakeMealNotifierWithData()),
+          mealRepositoryProvider.overrideWithValue(_FakeMealRepository()),
+          selectedMealsDateProvider.overrideWith(
+            (Ref ref) => DateTime(2026, 4, 7),
+          ),
         ],
         child: const MaterialApp(home: MealsScreen()),
       ),
@@ -35,10 +38,25 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    final PageView pageView = tester.widget<PageView>(find.byType(PageView));
-    expect(pageView.scrollDirection, Axis.horizontal);
-    expect(pageView.pageSnapping, isTrue);
-    expect(find.text('Oatmeal'), findsOneWidget);
+    expect(find.text('Meal 7'), findsOneWidget);
+
+    await tester.fling(
+      find.byType(ListView).first,
+      const Offset(-400, 0),
+      1800,
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Meal 8'), findsOneWidget);
+
+    await tester.fling(
+      find.byType(ListView).first,
+      const Offset(400, 0),
+      1800,
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Meal 7'), findsOneWidget);
   });
 }
 
@@ -47,16 +65,27 @@ class _FakeMealNotifier extends MealNotifier {
   Future<List<Meal>> build() async => <Meal>[];
 }
 
-class _FakeMealNotifierWithData extends MealNotifier {
+class _FakeMealRepository extends MealRepository {
   @override
-  Future<List<Meal>> build() async => <Meal>[
-        Meal(
-          id: 1,
-          date: DateTime(2026, 4, 7),
-          timeOfDay: MealTimeOfDay.breakfast,
-          description: 'Oatmeal',
-          quantity: '1 bowl',
-          notes: null,
-        ),
-      ];
+  Future<List<Meal>> getMealsForDate(DateTime date) async {
+    return <Meal>[
+      Meal(
+        id: date.day,
+        date: date,
+        timeOfDay: MealTimeOfDay.breakfast,
+        description: 'Meal ${date.day}',
+        quantity: '1 bowl',
+        notes: null,
+      ),
+    ];
+  }
+
+  @override
+  Future<void> deleteMeal(int id) async {}
+
+  @override
+  Future<int> insertMeal(Meal meal) async => 1;
+
+  @override
+  Future<void> updateMeal(Meal meal) async {}
 }
