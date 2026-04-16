@@ -60,21 +60,23 @@ final GoRouter _router = GoRouter(
       },
     ),
     StatefulShellRoute.indexedStack(
-      builder: (BuildContext context, GoRouterState state, StatefulNavigationShell navigationShell) {
+      builder: (BuildContext context, GoRouterState state,
+          StatefulNavigationShell navigationShell) {
         return Scaffold(
           body: navigationShell,
           bottomNavigationBar: NavigationBar(
             selectedIndex: navigationShell.currentIndex,
             onDestinationSelected: (int index) async {
-              final bool switchingBranch = index != navigationShell.currentIndex;
+              final bool switchingBranch =
+                  index != navigationShell.currentIndex;
               final bool isActiveBreathingRoute =
                   state.uri.toString().startsWith('/breathing/session');
               final ProviderContainer container =
                   ProviderScope.containerOf(context, listen: false);
               final BreathingState? breathingState =
                   container.read(breathingNotifierProvider).valueOrNull;
-              final bool shouldConfirmStop =
-                  switchingBranch && isActiveBreathingRoute &&
+              final bool shouldConfirmStop = switchingBranch &&
+                  isActiveBreathingRoute &&
                   (breathingState?.isRunning ?? false);
 
               if (shouldConfirmStop) {
@@ -167,7 +169,7 @@ final GoRouter _router = GoRouter(
         ),
         StatefulShellBranch(
           routes: <RouteBase>[
-             GoRoute(
+            GoRoute(
               path: '/physio',
               builder: (BuildContext context, GoRouterState state) {
                 return const PhysioScreen();

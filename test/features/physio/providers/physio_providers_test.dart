@@ -49,21 +49,21 @@ void main() {
     when(() => logRepository.getLogsForDate(any()))
         .thenAnswer((_) async => <ExerciseLog>[]);
     when(() => logRepository.getPlannedExerciseIds())
-      .thenAnswer((_) async => <String>{});
+        .thenAnswer((_) async => <String>{});
     when(() => logRepository.getPlanRepsForDate(any()))
-      .thenAnswer((_) async => <String, int>{});
+        .thenAnswer((_) async => <String, int>{});
     when(() => logRepository.getPlanHistoryForExercise(any()))
-      .thenAnswer((_) async => <PlanProgressEntry>[]);
+        .thenAnswer((_) async => <PlanProgressEntry>[]);
     when(() => logRepository.logExercise(
         exerciseId: any(named: 'exerciseId'),
         date: any(named: 'date'))).thenAnswer((_) async => 1);
     when(() => logRepository.addToPlan(any())).thenAnswer((_) async {});
     when(() => logRepository.removeFromPlan(any())).thenAnswer((_) async {});
     when(() => logRepository.incrementPlanReps(
-        exerciseId: any(named: 'exerciseId'),
-        reps: any(named: 'reps'),
-        date: any(named: 'date'),
-      )).thenAnswer((_) async {});
+          exerciseId: any(named: 'exerciseId'),
+          reps: any(named: 'reps'),
+          date: any(named: 'date'),
+        )).thenAnswer((_) async {});
 
     container = ProviderContainer(
       overrides: [

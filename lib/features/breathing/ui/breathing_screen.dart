@@ -7,82 +7,91 @@ import 'package:recovery_app/features/breathing/providers/breathing_providers.da
 import 'package:recovery_app/features/breathing/ui/widgets/breathing_circle.dart';
 import 'package:recovery_app/features/breathing/ui/widgets/phase_label.dart';
 
+// ============================================================================
+// Data Models & Constants
+// ============================================================================
+
+enum _BreathingPattern {
+  boxBreathing('Box Breathing', 4, 4, 4,
+      'Goal: steady the nervous system and improve focus. Equal inhale/hold/exhale timing can reduce stress spikes.'),
+  breathing47('4-7-8', 4, 7, 8,
+      'Goal: down-regulate and prepare for rest. Long exhale is used to encourage calm and reduce racing thoughts.'),
+  relaxed('Relaxed', 5, 0, 7,
+      'Goal: gentle recovery breathing with no hold. Useful when you want calm breathing without strain.'),
+  custom('Custom', 4, 4, 4,
+      'Goal: tailor timing to comfort and symptoms. Keep breath smooth and avoid pushing into discomfort.');
+
+  const _BreathingPattern(this.label, this.defaultInhale, this.defaultHold,
+      this.defaultExhale, this.goal);
+
+  final String label;
+  final int defaultInhale;
+  final int defaultHold;
+  final int defaultExhale;
+  final String goal;
+}
+
+extension on BreathingVibrationLevel {
+  String get label {
+    return switch (this) {
+      BreathingVibrationLevel.off => 'Off',
+      BreathingVibrationLevel.light => 'Light',
+      BreathingVibrationLevel.medium => 'Medium',
+      BreathingVibrationLevel.heavy => 'Heavy',
+    };
+  }
+}
+
+// ============================================================================
+// Utilities
+// ============================================================================
+
+class _BreathingUtils {
+  static String formatDuration(int seconds) {
+    final minutes = seconds ~/ 60;
+    final remaining = seconds % 60;
+    if (minutes == 0) return '${remaining}s';
+    return '${minutes}m ${remaining.toString().padLeft(2, '0')}s';
+  }
+}
+
+// ============================================================================
+// Breathing Screen Setup
+// ============================================================================
+
 class BreathingScreen extends ConsumerStatefulWidget {
   const BreathingScreen({super.key});
+
+  static const String _howToBreathe =
+      'How to breathe: sit upright with shoulders relaxed, inhale through your nose, keep the breath soft during holds, then exhale slowly through your mouth. Stop if you feel dizzy and restart with shorter timings.';
 
   @override
   ConsumerState<BreathingScreen> createState() => _BreathingScreenState();
 }
 
 class _BreathingScreenState extends ConsumerState<BreathingScreen> {
-  String _pattern = 'Box Breathing';
-  int _inhale = 4;
-  int _hold = 4;
-  int _exhale = 4;
+  late _BreathingPattern _pattern = _BreathingPattern.boxBreathing;
+  late int _inhale = _pattern.defaultInhale;
+  late int _hold = _pattern.defaultHold;
+  late int _exhale = _pattern.defaultExhale;
   int _cycles = 5;
   BreathingVibrationLevel _vibrationLevel = BreathingVibrationLevel.light;
 
-  static const Map<String, String> _patternGoals = <String, String>{
-    'Box Breathing':
-        'Goal: steady the nervous system and improve focus. Equal inhale/hold/exhale timing can reduce stress spikes.',
-    '4-7-8':
-        'Goal: down-regulate and prepare for rest. Long exhale is used to encourage calm and reduce racing thoughts.',
-    'Relaxed':
-        'Goal: gentle recovery breathing with no hold. Useful when you want calm breathing without strain.',
-    'Custom':
-        'Goal: tailor timing to comfort and symptoms. Keep breath smooth and avoid pushing into discomfort.',
-  };
-
-  static const String _howToBreathe =
-      'How to breathe: sit upright with shoulders relaxed, inhale through your nose, keep the breath soft during holds, then exhale slowly through your mouth. Stop if you feel dizzy and restart with shorter timings.';
-
   int get _totalSessionSeconds => (_inhale + _hold + _exhale) * _cycles;
 
-  String _formatDuration(int seconds) {
-    final int minutes = seconds ~/ 60;
-    final int remainingSeconds = seconds % 60;
-    if (minutes == 0) {
-      return '${remainingSeconds}s';
-    }
-    return '${minutes}m ${remainingSeconds.toString().padLeft(2, '0')}s';
-  }
-
-  String _vibrationLabel(BreathingVibrationLevel level) {
-    if (level == BreathingVibrationLevel.off) {
-      return 'Off';
-    }
-    if (level == BreathingVibrationLevel.light) {
-      return 'Light';
-    }
-    if (level == BreathingVibrationLevel.medium) {
-      return 'Medium';
-    }
-    return 'Strong';
-  }
-
-  void _applyPreset(String value) {
+  void _setPattern(_BreathingPattern pattern) {
     setState(() {
-      _pattern = value;
-      if (value == 'Box Breathing') {
-        _inhale = 4;
-        _hold = 4;
-        _exhale = 4;
-      } else if (value == '4-7-8') {
-        _inhale = 4;
-        _hold = 7;
-        _exhale = 8;
-      } else if (value == 'Relaxed') {
-        _inhale = 5;
-        _hold = 0;
-        _exhale = 7;
-      }
+      _pattern = pattern;
+      _inhale = pattern.defaultInhale;
+      _hold = pattern.defaultHold;
+      _exhale = pattern.defaultExhale;
     });
   }
 
   Future<void> _startSession() async {
     await ref.read(breathingNotifierProvider.future);
     await ref.read(breathingNotifierProvider.notifier).startSession(
-          patternName: _pattern,
+          patternName: _pattern.label,
           inhale: _inhale,
           hold: _hold,
           exhale: _exhale,
@@ -106,127 +115,37 @@ class _BreathingScreenState extends ConsumerState<BreathingScreen> {
           constraints: const BoxConstraints(maxWidth: 560),
           child: ListView(
             padding: const EdgeInsets.all(16),
-            children: <Widget>[
-              DropdownButtonFormField<String>(
-                value: _pattern,
-                decoration: const InputDecoration(labelText: 'Pattern'),
-                items: const <DropdownMenuItem<String>>[
-                  DropdownMenuItem(
-                      value: 'Box Breathing', child: Text('Box Breathing')),
-                  DropdownMenuItem(value: '4-7-8', child: Text('4-7-8')),
-                  DropdownMenuItem(value: 'Relaxed', child: Text('Relaxed')),
-                  DropdownMenuItem(value: 'Custom', child: Text('Custom')),
-                ],
-                onChanged: (String? value) {
-                  if (value != null) {
-                    _applyPreset(value);
-                  }
-                },
+            children: [
+              _PatternDropdown(
+                selectedPattern: _pattern,
+                onPatternSelected: _setPattern,
               ),
               const SizedBox(height: 32),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: <Widget>[
-                    Text(
-                      _howToBreathe,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                    const SizedBox(height: 24),
-                    Text(
-                      _patternGoals[_pattern] ?? '',
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                  ],
-                ),
+              _InformationPanel(
+                howToBreathe: BreathingScreen._howToBreathe,
+                patternGoal: _pattern.goal,
               ),
               const SizedBox(height: 48),
               const Divider(color: Color(0xFFEEEEEE), height: 1),
               const SizedBox(height: 32),
-              Center(child: Text('Inhale: $_inhale s')),
-              Slider(
-                value: _inhale.toDouble(),
-                min: 1,
-                max: 15,
-                divisions: 14,
-                onChanged: (double value) =>
-                    setState(() => _inhale = value.round()),
-              ),
-              Center(child: Text('Hold: $_hold s')),
-              Slider(
-                value: _hold.toDouble(),
-                min: 0,
-                max: 15,
-                divisions: 15,
-                onChanged: (double value) =>
-                    setState(() => _hold = value.round()),
-              ),
-              Center(child: Text('Exhale: $_exhale s')),
-              Slider(
-                value: _exhale.toDouble(),
-                min: 1,
-                max: 15,
-                divisions: 14,
-                onChanged: (double value) =>
-                    setState(() => _exhale = value.round()),
-              ),
-              Center(child: Text('Cycles: $_cycles')),
-              Slider(
-                value: _cycles.toDouble(),
-                min: 1,
-                max: 20,
-                divisions: 19,
-                onChanged: (double value) =>
-                    setState(() => _cycles = value.round()),
+              _BreathingParameterSliders(
+                inhale: _inhale,
+                hold: _hold,
+                exhale: _exhale,
+                cycles: _cycles,
+                onInhaleChanged: (v) => setState(() => _inhale = v),
+                onHoldChanged: (v) => setState(() => _hold = v),
+                onExhaleChanged: (v) => setState(() => _exhale = v),
+                onCyclesChanged: (v) => setState(() => _cycles = v),
               ),
               const SizedBox(height: 12),
-              Center(
-                child: Text(
-                  'Vibration',
-                  style: Theme.of(context).textTheme.labelLarge,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                alignment: WrapAlignment.center,
-                spacing: 8,
-                runSpacing: 8,
-                children: BreathingVibrationLevel.values
-                    .map((BreathingVibrationLevel level) {
-                  return ChoiceChip(
-                    label: Text(_vibrationLabel(level)),
-                    selected: _vibrationLevel == level,
-                    onSelected: (_) {
-                      setState(() => _vibrationLevel = level);
-                    },
-                  );
-                }).toList(),
+              _VibrationSelector(
+                selectedLevel: _vibrationLevel,
+                onLevelSelected: (v) =>
+                    setState(() => _vibrationLevel = v),
               ),
               const SizedBox(height: 20),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    children: <Widget>[
-                      Text(
-                        'Estimated Session Time',
-                        style: Theme.of(context).textTheme.labelLarge,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _formatDuration(_totalSessionSeconds),
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineSmall
-                            ?.copyWith(fontSize: 24),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+              _SessionTimeCard(totalSeconds: _totalSessionSeconds),
               const SizedBox(height: 8),
               Center(
                 child: FilledButton(
@@ -242,8 +161,240 @@ class _BreathingScreenState extends ConsumerState<BreathingScreen> {
   }
 }
 
+// ============================================================================
+// BreathingScreen Widgets
+// ============================================================================
+
+class _PatternDropdown extends StatelessWidget {
+  const _PatternDropdown({
+    required this.selectedPattern,
+    required this.onPatternSelected,
+  });
+
+  final _BreathingPattern selectedPattern;
+  final ValueChanged<_BreathingPattern> onPatternSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return DropdownButtonFormField<_BreathingPattern>(
+      value: selectedPattern,
+      decoration: const InputDecoration(labelText: 'Pattern'),
+      items: [
+        for (final pattern in _BreathingPattern.values)
+          DropdownMenuItem(
+            value: pattern,
+            child: Text(pattern.label),
+          ),
+      ],
+      onChanged: (value) {
+        if (value != null) {
+          onPatternSelected(value);
+        }
+      },
+    );
+  }
+}
+
+class _InformationPanel extends StatelessWidget {
+  const _InformationPanel({
+    required this.howToBreathe,
+    required this.patternGoal,
+  });
+
+  final String howToBreathe;
+  final String patternGoal;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            howToBreathe,
+            textAlign: TextAlign.center,
+            style: textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 24),
+          Text(
+            patternGoal,
+            textAlign: TextAlign.center,
+            style: textTheme.bodyMedium,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BreathingParameterSliders extends StatelessWidget {
+  const _BreathingParameterSliders({
+    required this.inhale,
+    required this.hold,
+    required this.exhale,
+    required this.cycles,
+    required this.onInhaleChanged,
+    required this.onHoldChanged,
+    required this.onExhaleChanged,
+    required this.onCyclesChanged,
+  });
+
+  final int inhale;
+  final int hold;
+  final int exhale;
+  final int cycles;
+  final ValueChanged<int> onInhaleChanged;
+  final ValueChanged<int> onHoldChanged;
+  final ValueChanged<int> onExhaleChanged;
+  final ValueChanged<int> onCyclesChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        _SliderParameter(
+          label: 'Inhale',
+          value: inhale,
+          min: 1,
+          max: 15,
+          onChanged: onInhaleChanged,
+        ),
+        _SliderParameter(
+          label: 'Hold',
+          value: hold,
+          min: 0,
+          max: 15,
+          onChanged: onHoldChanged,
+        ),
+        _SliderParameter(
+          label: 'Exhale',
+          value: exhale,
+          min: 1,
+          max: 15,
+          onChanged: onExhaleChanged,
+        ),
+        _SliderParameter(
+          label: 'Cycles',
+          value: cycles,
+          min: 1,
+          max: 20,
+          onChanged: onCyclesChanged,
+        ),
+      ],
+    );
+  }
+}
+
+class _SliderParameter extends StatelessWidget {
+  const _SliderParameter({
+    required this.label,
+    required this.value,
+    required this.min,
+    required this.max,
+    required this.onChanged,
+  });
+
+  final String label;
+  final int value;
+  final double min;
+  final double max;
+  final ValueChanged<int> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Center(child: Text('$label: $value s')),
+        Slider(
+          value: value.toDouble(),
+          min: min,
+          max: max,
+          divisions: (max - min).toInt(),
+          onChanged: (v) => onChanged(v.round()),
+        ),
+      ],
+    );
+  }
+}
+
+class _VibrationSelector extends StatelessWidget {
+  const _VibrationSelector({
+    required this.selectedLevel,
+    required this.onLevelSelected,
+  });
+
+  final BreathingVibrationLevel selectedLevel;
+  final ValueChanged<BreathingVibrationLevel> onLevelSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Center(
+          child: Text(
+            'Vibration',
+            style: Theme.of(context).textTheme.labelLarge,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          alignment: WrapAlignment.center,
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final level in BreathingVibrationLevel.values)
+              ChoiceChip(
+                label: Text(level.label),
+                selected: selectedLevel == level,
+                onSelected: (_) => onLevelSelected(level),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _SessionTimeCard extends StatelessWidget {
+  const _SessionTimeCard({required this.totalSeconds});
+
+  final int totalSeconds;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          children: [
+            Text(
+              'Estimated Session Time',
+              style: Theme.of(context).textTheme.labelLarge,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              _BreathingUtils.formatDuration(totalSeconds),
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontSize: 24,
+                  ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ============================================================================
+// Active Session Screen
+// ============================================================================
+
 class ActiveSessionScreen extends ConsumerStatefulWidget {
   const ActiveSessionScreen({super.key});
+
+  static const Duration _autoCloseDelay = Duration(seconds: 3);
 
   @override
   ConsumerState<ActiveSessionScreen> createState() =>
@@ -251,62 +402,51 @@ class ActiveSessionScreen extends ConsumerStatefulWidget {
 }
 
 class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
-  bool _didRequestStop = false;
+  bool _stopRequested = false;
 
-  Future<void> _stopIfActive() async {
-    if (_didRequestStop) {
-      return;
-    }
-    final BreathingState? current =
-        ref.read(breathingNotifierProvider).valueOrNull;
-    if (current == null || !current.isRunning || current.didFinish) {
-      return;
-    }
+  Future<void> _attemptStop({bool wait = true}) async {
+    if (_stopRequested) return;
 
-    _didRequestStop = true;
-    await ref.read(breathingNotifierProvider.notifier).stopEarly();
-  }
+    final state = ref.read(breathingNotifierProvider).valueOrNull;
+    if (state == null || !state.isRunning || state.didFinish) return;
 
-  void _stopIfActiveNoWait() {
-    if (_didRequestStop) {
-      return;
-    }
-    final BreathingState? current =
-        ref.read(breathingNotifierProvider).valueOrNull;
-    if (current == null || !current.isRunning || current.didFinish) {
-      return;
-    }
+    _stopRequested = true;
 
-    _didRequestStop = true;
-    unawaited(ref.read(breathingNotifierProvider.notifier).stopEarly());
+    if (wait) {
+      await ref.read(breathingNotifierProvider.notifier).stopEarly();
+    } else {
+      unawaited(ref.read(breathingNotifierProvider.notifier).stopEarly());
+    }
   }
 
   @override
   void dispose() {
-    _stopIfActiveNoWait();
+    _attemptStop(wait: false);
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final AsyncValue<BreathingState> state =
-        ref.watch(breathingNotifierProvider);
+    final state = ref.watch(breathingNotifierProvider);
+
     return PopScope(
+      canPop: false,
       onPopInvoked: (bool didPop) {
-        if (didPop) {
-          _stopIfActiveNoWait();
+        if (!didPop) {
+          _attemptStop(wait: false);
+          context.go('/breathing');
         }
       },
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Active Session'),
           centerTitle: true,
-          actions: <Widget>[
+          actions: [
             IconButton(
               tooltip: 'Exit Session',
               icon: const Icon(Icons.close),
               onPressed: () async {
-                await _stopIfActive();
+                await _attemptStop();
                 if (mounted) {
                   context.go('/breathing');
                 }
@@ -315,86 +455,115 @@ class _ActiveSessionScreenState extends ConsumerState<ActiveSessionScreen> {
           ],
         ),
         body: state.when(
-          data: (BreathingState data) {
-            if (data.didFinish) {
-              Future<void>.delayed(const Duration(seconds: 3), () {
+          data: (breathingState) {
+            if (breathingState.didFinish) {
+              Future<void>.delayed(ActiveSessionScreen._autoCloseDelay, () {
                 if (context.mounted) {
                   context.go('/breathing');
                 }
               });
             }
 
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  BreathingCircle(
-                    phase: data.phase,
-                    phaseProgress: ((data.phaseDuration - data.secondsRemaining) /
-                            data.phaseDuration)
-                        .clamp(0.0, 1.0),
-                  ),
-                  const SizedBox(height: 12),
-                  PhaseLabel(phase: data.phase),
-                  Text('${data.secondsRemaining}s'),
-                  Text('Cycle ${data.completedCycles} of ${data.targetCycles}'),
-                  const SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      FilledButton(
-                        onPressed: data.isPaused
-                            ? ref.read(breathingNotifierProvider.notifier).resume
-                            : ref.read(breathingNotifierProvider.notifier).pause,
-                        child: Text(data.isPaused ? 'Resume' : 'Pause'),
-                      ),
-                      const SizedBox(width: 8),
-                      OutlinedButton(
-                        onPressed: () async {
-                          await ref
-                              .read(breathingNotifierProvider.notifier)
-                              .stopEarly();
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  'Session ended early — ${data.completedCycles} cycles completed',
-                                ),
-                              ),
-                            );
-                          }
-                        },
-                        child: const Text('Stop'),
-                      ),
-                    ],
-                  ),
-                  if (data.didFinish)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 16),
-                      child: Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: Column(
-                            children: <Widget>[
-                              Text('Pattern: ${data.patternName}'),
-                              Text('Cycles: ${data.completedCycles}'),
-                              Text(
-                                'Total duration: ${(data.inhaleSeconds + data.holdSeconds + data.exhaleSeconds) * data.completedCycles}s',
-                              ),
-                            ],
-                          ),
-                        ),
+            return _SessionContent(
+              state: breathingState,
+              onStopEarly: () async {
+                await ref.read(breathingNotifierProvider.notifier).stopEarly();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Session ended early � ${breathingState.completedCycles} cycles completed',
                       ),
                     ),
-                ],
-              ),
+                  );
+                }
+              },
             );
           },
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (Object _, StackTrace __) {
-            return const Center(
-                child: Text('Unable to start breathing session.'));
-          },
+          error: (_, __) => const Center(
+            child: Text('Unable to start breathing session.'),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SessionContent extends ConsumerWidget {
+  const _SessionContent({
+    required this.state,
+    required this.onStopEarly,
+  });
+
+  final BreathingState state;
+  final VoidCallback onStopEarly;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          BreathingCircle(
+            phase: state.phase,
+            phaseProgress:
+                ((state.phaseDuration - state.secondsRemaining) /
+                        state.phaseDuration)
+                    .clamp(0.0, 1.0),
+          ),
+          const SizedBox(height: 12),
+          PhaseLabel(phase: state.phase),
+          Text('${state.secondsRemaining}s'),
+          Text('Cycle ${state.completedCycles} of ${state.targetCycles}'),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              FilledButton(
+                onPressed: state.isPaused
+                    ? ref.read(breathingNotifierProvider.notifier).resume
+                    : ref.read(breathingNotifierProvider.notifier).pause,
+                child: Text(state.isPaused ? 'Resume' : 'Pause'),
+              ),
+              const SizedBox(width: 8),
+              OutlinedButton(
+                onPressed: onStopEarly,
+                child: const Text('Stop'),
+              ),
+            ],
+          ),
+          if (state.didFinish)
+            Padding(
+              padding: const EdgeInsets.only(top: 16),
+              child: _SessionSummaryCard(state: state),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SessionSummaryCard extends StatelessWidget {
+  const _SessionSummaryCard({required this.state});
+
+  final BreathingState state;
+
+  @override
+  Widget build(BuildContext context) {
+    final totalDuration =
+        (state.inhaleSeconds + state.holdSeconds + state.exhaleSeconds) *
+            state.completedCycles;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          children: [
+            Text('Pattern: ${state.patternName}'),
+            Text('Cycles: ${state.completedCycles}'),
+            Text('Total duration: ${totalDuration}s'),
+          ],
         ),
       ),
     );

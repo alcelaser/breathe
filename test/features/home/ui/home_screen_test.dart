@@ -82,8 +82,8 @@ void main() {
           mealsCountTodayProvider.overrideWith((ref) async => 0),
           latestWeightSummaryProvider
               .overrideWith((ref) async => (latest: null, delta: null)),
-          physioTodayProgressProvider.overrideWith(
-              (ref) async => (exercisesDone: 0, totalReps: 18)),
+          physioTodayProgressProvider
+              .overrideWith((ref) async => (exercisesDone: 0, totalReps: 18)),
         ],
         child: MaterialApp.router(routerConfig: router),
       ),
