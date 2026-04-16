@@ -13,8 +13,15 @@ final selectedMealsDateProvider = StateProvider<DateTime>((Ref ref) {
   return DateTime(now.year, now.month, now.day);
 });
 
+final mealsForDateProvider =
+    FutureProvider.family<List<Meal>, DateTime>((ref, date) async {
+  final repository = ref.watch(mealRepositoryProvider);
+  final normalized = DateTime(date.year, date.month, date.day);
+  return repository.getMealsForDate(normalized);
+});
+
 final mealNotifierProvider =
-    AsyncNotifierProvider<MealNotifier, List<Meal>>(MealNotifier.new);
+    AsyncNotifierProvider<MealNotifier, void>(MealNotifier.new);
 
 final mealsCountTodayProvider = FutureProvider<int>((Ref ref) async {
   final repository = ref.watch(mealRepositoryProvider);
@@ -24,45 +31,29 @@ final mealsCountTodayProvider = FutureProvider<int>((Ref ref) async {
   return meals.length;
 });
 
-class MealNotifier extends AsyncNotifier<List<Meal>> {
-  DateTime _currentDate = DateTime.now();
-
+class MealNotifier extends AsyncNotifier<void> {
   MealRepository get _repository => ref.read(mealRepositoryProvider);
 
   @override
-  Future<List<Meal>> build() async {
-    _currentDate = ref.watch(selectedMealsDateProvider);
-    return _repository.getMealsForDate(_currentDate);
-  }
-
-  Future<void> loadForDate(DateTime date) async {
-    final normalized = DateTime(date.year, date.month, date.day);
-    _currentDate = normalized;
-    ref.read(selectedMealsDateProvider.notifier).state = normalized;
-    state = const AsyncLoading<List<Meal>>();
-    state =
-        await AsyncValue.guard(() => _repository.getMealsForDate(normalized));
+  Future<void> build() async {
+    // No initial state
   }
 
   Future<void> addMeal(Meal meal) async {
     await _repository.insertMeal(meal);
-    final List<Meal> refreshed =
-        await _repository.getMealsForDate(_currentDate);
-    state = AsyncData<List<Meal>>(refreshed);
+    ref.invalidate(mealsForDateProvider);
+    ref.invalidate(mealsCountTodayProvider);
   }
 
   Future<void> deleteMeal(int id) async {
     await _repository.deleteMeal(id);
-    final List<Meal> current = state.valueOrNull ?? <Meal>[];
-    state = AsyncData<List<Meal>>(
-      current.where((Meal meal) => meal.id != id).toList(),
-    );
+    ref.invalidate(mealsForDateProvider);
+    ref.invalidate(mealsCountTodayProvider);
   }
 
   Future<void> editMeal(Meal meal) async {
     await _repository.updateMeal(meal);
-    final List<Meal> refreshed =
-        await _repository.getMealsForDate(_currentDate);
-    state = AsyncData<List<Meal>>(refreshed);
+    ref.invalidate(mealsForDateProvider);
+    ref.invalidate(mealsCountTodayProvider);
   }
 }

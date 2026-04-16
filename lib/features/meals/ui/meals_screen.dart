@@ -35,17 +35,12 @@ class _MealsScreenState extends ConsumerState<MealsScreen> {
     return today.add(Duration(days: offset));
   }
 
-  void _onPageChanged(int pageIndex) {
-    final DateTime selectedDate = _getDateForPage(pageIndex);
-    // Let Riverpod handle updating selected date provider which should trigger meals load indirectly or do it directly
-    ref.read(mealNotifierProvider.notifier).loadForDate(selectedDate);
-
-    // We update our UI by reading a local date update if we didn't want to use provider date
-    // Actually the provider 'selectedMealsDateProvider' is better
-  }
-
-  Future<void> _openAddSheet(BuildContext context, WidgetRef ref, DateTime date,
-      {Meal? meal}) async {
+  Future<void> _openAddSheet(
+    BuildContext context,
+    WidgetRef ref,
+    DateTime date, {
+    Meal? meal,
+  }) async {
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -67,13 +62,11 @@ class _MealsScreenState extends ConsumerState<MealsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // We determine the selected date from the current page to keep it synchronized with sliding
+    // Determine the selected date from the current page position
     final int currentPage = _pageController.hasClients
         ? _pageController.page?.round() ?? 10000
         : 10000;
     final DateTime selectedDate = _getDateForPage(currentPage);
-
-    final AsyncValue<List<Meal>> mealsState = ref.watch(mealNotifierProvider);
 
     return Scaffold(
       body: SafeArea(
@@ -103,7 +96,8 @@ class _MealsScreenState extends ConsumerState<MealsScreen> {
                             child: Text(
                               'MEALS - ${DateFormat.MMMEd().format(selectedDate).toUpperCase()}',
                               key: ValueKey<String>(
-                                  selectedDate.toIso8601String()),
+                                selectedDate.toIso8601String(),
+                              ),
                               style: Theme.of(context)
                                   .textTheme
                                   .labelLarge
@@ -132,61 +126,12 @@ class _MealsScreenState extends ConsumerState<MealsScreen> {
                     controller: _pageController,
                     onPageChanged: (int index) {
                       setState(() {});
-                      _onPageChanged(index);
                     },
                     itemBuilder: (BuildContext context, int index) {
-                      return mealsState.when(
-                        data: (List<Meal> meals) {
-                          // Only show data if the current index matches the page the data was loaded for
-                          // But we are sharing state, so riverpod returns data for `selectedDate`
-                          // If `_getDateForPage(index)` != `selectedDate`, we might show old data temporarily.
-                          // Realistically it will fetch quickly, so let's just render.
-                          return meals.isEmpty
-                              ? const Center(child: Text('Nothing logged yet'))
-                              : ListView(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 24,
-                                    vertical: 16,
-                                  ),
-                                  children: meals.map((Meal meal) {
-                                    return MealCard(
-                                      meal: meal,
-                                      enableSwipeToDelete: false,
-                                      onEdit: () => _openAddSheet(
-                                        context,
-                                        ref,
-                                        selectedDate,
-                                        meal: meal,
-                                      ),
-                                      onRemove: () async {
-                                        final int? id = meal.id;
-                                        if (id == null) {
-                                          return;
-                                        }
-                                        await ref
-                                            .read(mealNotifierProvider.notifier)
-                                            .deleteMeal(id);
-                                        if (!context.mounted) {
-                                          return;
-                                        }
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          const SnackBar(
-                                            content:
-                                                Text('Meal deleted. Undo?'),
-                                          ),
-                                        );
-                                      },
-                                    );
-                                  }).toList(),
-                                );
-                        },
-                        loading: () =>
-                            const Center(child: CircularProgressIndicator()),
-                        error: (Object _, StackTrace __) {
-                          return const Center(
-                              child: Text('Unable to load meals.'));
-                        },
+                      final DateTime pageDate = _getDateForPage(index);
+                      return _MealPageContent(
+                        pageDate: pageDate,
+                        onOpenAddSheet: _openAddSheet,
                       );
                     },
                   ),
@@ -203,6 +148,73 @@ class _MealsScreenState extends ConsumerState<MealsScreen> {
         onPressed: () => _openAddSheet(context, ref, selectedDate),
         child: const Icon(Icons.add),
       ),
+    );
+  }
+}
+
+class _MealPageContent extends ConsumerWidget {
+  final DateTime pageDate;
+  final Future<void> Function(
+    BuildContext context,
+    WidgetRef ref,
+    DateTime date, {
+    Meal? meal,
+  }) onOpenAddSheet;
+
+  const _MealPageContent({
+    required this.pageDate,
+    required this.onOpenAddSheet,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final AsyncValue<List<Meal>> mealsState =
+        ref.watch(mealsForDateProvider(pageDate));
+
+    return mealsState.when(
+      data: (List<Meal> meals) {
+        return meals.isEmpty
+            ? const Center(child: Text('Nothing logged yet'))
+            : ListView(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 16,
+                ),
+                children: meals.map((Meal meal) {
+                  return MealCard(
+                    meal: meal,
+                    enableSwipeToDelete: false,
+                    onEdit: () => onOpenAddSheet(
+                      context,
+                      ref,
+                      pageDate,
+                      meal: meal,
+                    ),
+                    onRemove: () async {
+                      final int? id = meal.id;
+                      if (id == null) {
+                        return;
+                      }
+                      await ref
+                          .read(mealNotifierProvider.notifier)
+                          .deleteMeal(id);
+                      if (!context.mounted) {
+                        return;
+                      }
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Meal deleted. Undo?'),
+                        ),
+                      );
+                    },
+                  );
+                }).toList(),
+              );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (Object _, StackTrace __) {
+        return const Center(child: Text('Unable to load meals.'));
+      },
     );
   }
 }

@@ -32,7 +32,7 @@ void main() {
     when(() => mockRepository.getMealsForDate(any()))
         .thenAnswer((_) async => <Meal>[]);
 
-    final value = await container.read(mealNotifierProvider.future);
+    final value = await container.read(mealsForDateProvider(DateTime.now()).future);
     expect(value, isEmpty);
   });
 
@@ -58,7 +58,8 @@ void main() {
         .read(mealNotifierProvider.notifier)
         .addMeal(meal.copyWith(id: null));
 
-    expect(container.read(mealNotifierProvider).value!.length, 1);
+    final meals = await container.read(mealsForDateProvider(date).future);
+    expect(meals.length, 1);
     verify(() => mockRepository.insertMeal(any())).called(1);
   });
 }
