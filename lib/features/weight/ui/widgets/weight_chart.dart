@@ -21,9 +21,10 @@ class WeightChart extends StatelessWidget {
 
     final List<WeightEntry> orderedEntries = <WeightEntry>[...entries]
       ..sort((WeightEntry a, WeightEntry b) => a.date.compareTo(b.date));
-    final List<WeightEntry> chartEntries = orderedEntries.length > 12
-        ? orderedEntries.sublist(orderedEntries.length - 12)
-        : orderedEntries;
+
+    // Using all entries instead of clipping to the last 12
+    final List<WeightEntry> chartEntries = orderedEntries;
+
     final DateTime firstDate = chartEntries.first.date;
     final List<FlSpot> spots = chartEntries.map((WeightEntry entry) {
       final double daysSinceFirst =
@@ -68,31 +69,120 @@ class WeightChart extends StatelessWidget {
     }
 
     return SizedBox(
-      height: 220,
-      child: LineChart(
-        LineChartData(
-          minX: minX,
-          maxX: maxX,
-          minY: minY,
-          maxY: maxY,
-          lineBarsData: <LineChartBarData>[
-            LineChartBarData(
-              isCurved: true,
-              spots: spots,
-            ),
-            if (trendSpots.isNotEmpty)
+      height: 280,
+      child: Padding(
+        padding: const EdgeInsets.only(right: 16, top: 16),
+        child: LineChart(
+          LineChartData(
+            minX: minX,
+            maxX: maxX,
+            minY: minY,
+            maxY: maxY,
+            lineBarsData: <LineChartBarData>[
               LineChartBarData(
-                isCurved: false,
-                spots: trendSpots,
-                color: Colors.grey.withOpacity(0.5),
-                dotData: const FlDotData(show: false),
-                dashArray: [5, 5],
+                isCurved: true,
+                curveSmoothness: 0.35,
+                preventCurveOverShooting: true,
+                spots: spots,
               ),
-          ],
-          titlesData: const FlTitlesData(show: false),
-          borderData: FlBorderData(show: false),
+              if (trendSpots.isNotEmpty)
+                LineChartBarData(
+                  isCurved: false,
+                  spots: trendSpots,
+                  color: Colors.grey.withOpacity(0.5),
+                  dotData: const FlDotData(show: false),
+                  dashArray: [5, 5],
+                ),
+            ],
+            titlesData: FlTitlesData(
+              show: true,
+              bottomTitles: AxisTitles(
+                axisNameSize: 24,
+                axisNameWidget: const Text(
+                  'Date',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  interval: _calculateBottomInterval(maxX - minX),
+                  getTitlesWidget: (double value, TitleMeta meta) {
+                    final DateTime date = firstDate.add(
+                      Duration(days: value.toInt()),
+                    );
+                    return Transform.translate(
+                      offset: const Offset(0, 10),
+                      child: Text(
+                        '${date.month}/${date.day}',
+                        style: const TextStyle(
+                          fontSize: 10,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    );
+                  },
+                  reservedSize: 32,
+                ),
+              ),
+              leftTitles: AxisTitles(
+                axisNameSize: 24,
+                axisNameWidget: const Text(
+                  'Weight (kg)',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                sideTitles: SideTitles(
+                  showTitles: true,
+                  interval: _calculateLeftInterval(maxY - minY),
+                  getTitlesWidget: (double value, TitleMeta meta) {
+                    return Text(
+                      value.toStringAsFixed(1),
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: Colors.grey,
+                      ),
+                      textAlign: TextAlign.right,
+                    );
+                  },
+                  reservedSize: 40,
+                ),
+              ),
+              topTitles: const AxisTitles(
+                sideTitles: SideTitles(showTitles: false),
+              ),
+              rightTitles: const AxisTitles(
+                sideTitles: SideTitles(showTitles: false),
+              ),
+            ),
+            borderData: FlBorderData(
+              show: true,
+              border: const Border(
+                bottom: BorderSide(color: Colors.grey, width: 1),
+                left: BorderSide(color: Colors.grey, width: 1),
+              ),
+            ),
+            gridData: const FlGridData(show: false),
+          ),
         ),
       ),
     );
+  }
+
+  double _calculateBottomInterval(double range) {
+    if (range <= 7) return 1;
+    if (range <= 14) return 2;
+    if (range <= 30) return 5;
+    return 10;
+  }
+
+  double _calculateLeftInterval(double range) {
+    if (range <= 5) return 1;
+    if (range <= 10) return 2;
+    if (range <= 20) return 5;
+    return 10;
   }
 }
