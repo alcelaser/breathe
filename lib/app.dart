@@ -6,6 +6,7 @@ import 'package:recovery_app/features/breathing/providers/breathing_providers.da
 import 'package:recovery_app/features/breathing/ui/breathing_screen.dart';
 import 'package:recovery_app/features/home/ui/home_screen.dart';
 import 'package:recovery_app/features/meals/ui/meals_screen.dart';
+import 'package:recovery_app/features/recipes/ui/recipes_screen.dart';
 import 'package:recovery_app/features/physio/ui/plan_screen.dart';
 import 'package:recovery_app/features/physio/ui/physio_screen.dart';
 import 'package:recovery_app/features/weight/ui/weight_screen.dart';
@@ -113,6 +114,10 @@ final GoRouter _router = GoRouter(
                 label: 'Meals',
               ),
               NavigationDestination(
+                icon: Icon(Icons.menu_book),
+                label: 'Recipes',
+              ),
+              NavigationDestination(
                 icon: Icon(Icons.monitor_weight),
                 label: 'Weight',
               ),
@@ -153,6 +158,16 @@ final GoRouter _router = GoRouter(
               path: '/meals',
               builder: (BuildContext context, GoRouterState state) {
                 return const MealsScreen();
+              },
+            ),
+          ],
+        ),
+        StatefulShellBranch(
+          routes: <RouteBase>[
+            GoRoute(
+              path: '/recipes',
+              builder: (BuildContext context, GoRouterState state) {
+                return const RecipesScreen();
               },
             ),
           ],

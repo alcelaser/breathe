@@ -7,7 +7,7 @@ class DatabaseHelper {
   DatabaseHelper._internal();
 
   static final DatabaseHelper instance = DatabaseHelper._internal();
-  static const int schemaVersion = 4;
+  static const int schemaVersion = 5;
   static const String databaseName = 'recovery_app.db';
 
   Database? _database;
@@ -39,6 +39,7 @@ class DatabaseHelper {
     await db.execute(Tables.createExerciseLogs);
     await db.execute(Tables.createExercisePlan);
     await db.execute(Tables.createExercisePlanProgress);
+    await db.execute(Tables.createRecipes);
   }
 
   static Future<void> onUpgrade(
@@ -60,6 +61,9 @@ class DatabaseHelper {
           "ALTER TABLE ${Tables.meals} ADD COLUMN quantity TEXT NOT NULL DEFAULT ''",
         );
       }
+    }
+    if (oldVersion < 5) {
+      await db.execute(Tables.createRecipes);
     }
   }
 

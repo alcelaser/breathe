@@ -11,6 +11,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          mealRepositoryProvider.overrideWithValue(_EmptyFakeMealRepository()),
           mealNotifierProvider.overrideWith(() => _FakeMealNotifier()),
         ],
         child: const MaterialApp(home: MealsScreen()),
@@ -28,9 +29,6 @@ void main() {
       ProviderScope(
         overrides: [
           mealRepositoryProvider.overrideWithValue(_FakeMealRepository()),
-          selectedMealsDateProvider.overrideWith(
-            (Ref ref) => DateTime(2026, 4, 7),
-          ),
         ],
         child: const MaterialApp(home: MealsScreen()),
       ),
@@ -38,31 +36,42 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    expect(find.text('Meal 7'), findsOneWidget);
+    final DateTime now = DateTime.now();
+    final int today = now.day;
+    final int tomorrow = now.add(const Duration(days: 1)).day;
+
+    expect(find.text('Meal $today'), findsOneWidget);
 
     await tester.fling(
-      find.byType(ListView).first,
+      find.byType(PageView).first,
       const Offset(-400, 0),
       1800,
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Meal 8'), findsOneWidget);
+    expect(find.text('Meal $tomorrow'), findsOneWidget);
 
     await tester.fling(
-      find.byType(ListView).first,
+      find.byType(PageView).first,
       const Offset(400, 0),
       1800,
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Meal 7'), findsOneWidget);
+    expect(find.text('Meal $today'), findsOneWidget);
   });
 }
 
 class _FakeMealNotifier extends MealNotifier {
   @override
-  Future<List<Meal>> build() async => <Meal>[];
+  Future<void> build() async {}
+}
+
+class _EmptyFakeMealRepository extends MealRepository {
+  @override
+  Future<List<Meal>> getMealsForDate(DateTime date) async {
+    return <Meal>[];
+  }
 }
 
 class _FakeMealRepository extends MealRepository {

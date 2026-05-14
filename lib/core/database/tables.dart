@@ -5,6 +5,7 @@ class Tables {
   static const String exerciseLogs = 'exercise_logs';
   static const String exercisePlan = 'exercise_plan';
   static const String exercisePlanProgress = 'exercise_plan_progress';
+  static const String recipes = 'recipes';
 
   static const String createBreathingSessions = '''
 CREATE TABLE breathing_sessions (
@@ -61,6 +62,15 @@ CREATE TABLE exercise_plan_progress (
   exercise_id TEXT    NOT NULL,
   reps_done   INTEGER NOT NULL,
   UNIQUE(exercise_id, date)
+)
+''';
+
+  static const String createRecipes = '''
+CREATE TABLE recipes (
+  id          TEXT PRIMARY KEY,
+  title       TEXT NOT NULL,
+  source_link TEXT,
+  content     TEXT
 )
 ''';
 }

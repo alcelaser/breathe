@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:recovery_app/features/weight/data/models/weight_entry.dart';
 import 'package:recovery_app/features/weight/providers/weight_providers.dart';
 import 'package:recovery_app/features/weight/ui/widgets/add_weight_sheet.dart';
+import 'package:recovery_app/features/weight/ui/widgets/bmr_calculator_sheet.dart';
 import 'package:recovery_app/features/weight/ui/widgets/weight_chart.dart';
 
 class WeightScreen extends ConsumerWidget {
@@ -50,6 +51,20 @@ class WeightScreen extends ConsumerWidget {
                                 letterSpacing: 4.0,
                                 fontWeight: FontWeight.w400,
                               ),
+                    ),
+                    const SizedBox(height: 16),
+                    Center(
+                      child: TextButton.icon(
+                        icon: const Icon(Icons.calculate),
+                        label: const Text('BMR Calculator'),
+                        onPressed: () {
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            builder: (_) => const BmrCalculatorSheet(),
+                          );
+                        },
+                      ),
                     ),
                     const SizedBox(height: 32),
                     WeightChart(entries: entries),
