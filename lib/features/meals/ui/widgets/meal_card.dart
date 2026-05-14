@@ -17,6 +17,10 @@ class MealCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final String detailText = meal.quantity.trim().isEmpty
+        ? meal.timeOfDay.name.toUpperCase()
+        : '${meal.timeOfDay.name.toUpperCase()} • ${meal.quantity}';
+
     final Widget card = Card(
       child: ListTile(
         title: Column(
@@ -29,7 +33,7 @@ class MealCard extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              '${meal.timeOfDay.name.toUpperCase()} • ${meal.quantity}',
+              detailText,
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 12, color: Color(0xFF9E9E9E)),
             ),

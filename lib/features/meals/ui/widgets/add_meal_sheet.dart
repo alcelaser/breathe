@@ -146,14 +146,7 @@ class _AddMealSheetFormState extends State<_AddMealSheetForm> {
                 TextFormField(
                   controller: _quantityController,
                   decoration: const InputDecoration(
-                      labelText: 'Quantity (e.g., 1 cup, 100g)'),
-                  validator: (String? value) {
-                    final String text = value?.trim() ?? '';
-                    if (text.isEmpty) {
-                      return 'Quantity is required';
-                    }
-                    return null;
-                  },
+                      labelText: 'Quantity (optional, e.g., 1 cup, 100g)'),
                 ),
                 TextFormField(
                   controller: _notesController,
