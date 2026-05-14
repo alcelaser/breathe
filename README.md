@@ -1,1 +1,1 @@
-Flutter app designed to assist recovery during a psoas radioculopathy.
+Flutter app designed to assist recovery during a severe disc herniation.
