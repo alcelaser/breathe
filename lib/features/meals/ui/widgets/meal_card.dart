@@ -29,7 +29,9 @@ class MealCard extends StatelessWidget {
             ),
             const SizedBox(height: 4),
             Text(
-              '${meal.timeOfDay.name.toUpperCase()} • ${meal.quantity}',
+              meal.quantity == null || meal.quantity!.trim().isEmpty
+                  ? meal.timeOfDay.name.toUpperCase()
+                  : '${meal.timeOfDay.name.toUpperCase()} • ${meal.quantity}',
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 12, color: Color(0xFF9E9E9E)),
             ),

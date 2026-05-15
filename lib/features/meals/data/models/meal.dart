@@ -6,7 +6,7 @@ class Meal {
     required this.date,
     required this.timeOfDay,
     required this.description,
-    required this.quantity,
+    this.quantity,
     required this.notes,
   });
 
@@ -14,7 +14,7 @@ class Meal {
   final DateTime date;
   final MealTimeOfDay timeOfDay;
   final String description;
-  final String quantity;
+  final String? quantity;
   final String? notes;
 
   Meal copyWith({
@@ -41,7 +41,7 @@ class Meal {
       'date': DateTime(date.year, date.month, date.day).toIso8601String(),
       'time_of_day': timeOfDay.name,
       'description': description,
-      'quantity': quantity,
+      'quantity': quantity ?? '',
       'notes': notes,
     };
   }
@@ -54,7 +54,9 @@ class Meal {
         (MealTimeOfDay value) => value.name == map['time_of_day'] as String,
       ),
       description: map['description'] as String,
-      quantity: map['quantity'] as String? ?? '',
+      quantity: (map['quantity'] as String?)?.trim().isEmpty ?? true
+          ? null
+          : map['quantity'] as String,
       notes: map['notes'] as String?,
     );
   }

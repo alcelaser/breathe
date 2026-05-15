@@ -51,7 +51,7 @@ class _AddMealSheetFormState extends State<_AddMealSheetForm> {
     if (widget.initialMeal != null) {
       _selected = widget.initialMeal!.timeOfDay;
       _descriptionController.text = widget.initialMeal!.description;
-      _quantityController.text = widget.initialMeal!.quantity;
+      _quantityController.text = widget.initialMeal!.quantity ?? '';
       _notesController.text = widget.initialMeal!.notes ?? '';
     } else {
       _selected = MealTimeOfDay.breakfast;
@@ -75,7 +75,9 @@ class _AddMealSheetFormState extends State<_AddMealSheetForm> {
       date: widget.initialDate,
       timeOfDay: _selected,
       description: _descriptionController.text.trim(),
-      quantity: _quantityController.text.trim(),
+      quantity: _quantityController.text.trim().isEmpty
+          ? null
+          : _quantityController.text.trim(),
       notes: _notesController.text.trim().isEmpty
           ? null
           : _notesController.text.trim(),
@@ -146,14 +148,7 @@ class _AddMealSheetFormState extends State<_AddMealSheetForm> {
                 TextFormField(
                   controller: _quantityController,
                   decoration: const InputDecoration(
-                      labelText: 'Quantity (e.g., 1 cup, 100g)'),
-                  validator: (String? value) {
-                    final String text = value?.trim() ?? '';
-                    if (text.isEmpty) {
-                      return 'Quantity is required';
-                    }
-                    return null;
-                  },
+                      labelText: 'Quantity (optional, e.g., 1 cup, 100g)'),
                 ),
                 TextFormField(
                   controller: _notesController,
